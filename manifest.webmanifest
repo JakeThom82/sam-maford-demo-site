@@ -1,0 +1,16 @@
+{
+  "name": "SAM — M.A. Ford Tooling Demo (independent prototype)",
+  "short_name": "SAM Tooling",
+  "description": "Independent prototype: find M.A. Ford end mills from the Vol. 105 catalog and load them into a milling calculator. Not an M.A. Ford product.",
+  "start_url": "./#/find",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#14202b",
+  "theme_color": "#14202b",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

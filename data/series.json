@@ -1,0 +1,3723 @@
+{
+ "111": {
+  "id": "111",
+  "doc": "gp",
+  "family": "GP",
+  "title": "GP - Series 111",
+  "pages": [
+   192,
+   193,
+   194,
+   195,
+   196,
+   197,
+   198
+  ],
+  "notes": [
+   "Designed for aggressive milling of most materials.",
+   "Micro sizes available.",
+   "Series 111 coated tools on page 197.",
+   "New ALtima coated sizes.",
+   "Series 111 uncoated tools on page 192."
+  ],
+  "pdfPages": [
+   15,
+   16,
+   17,
+   18,
+   19,
+   20,
+   21
+  ],
+  "nofIcon": 4,
+  "helixIcon": "30°",
+  "line": "TuffCut GP",
+  "nof": 4,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "30°",
+  "features": [],
+  "toc": "GP PDF p14: 4 Flute, Square End/Corner Radius",
+  "materials": {
+   "scope": "general-purpose",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "N",
+    "P",
+    "S"
+   ],
+   "pages": [
+    242,
+    243,
+    244,
+    245,
+    246,
+    247,
+    248,
+    249
+   ]
+  }
+ },
+ "114": {
+  "id": "114",
+  "doc": "gp",
+  "family": "GP",
+  "title": "GP - Series 114",
+  "pages": [
+   201
+  ],
+  "notes": [
+   "Chipbreaker end mill designed for aggressive milling of most materials.",
+   "Allows high feed rates when roughing.",
+   "Designed to minimize cutting forces, reduce or",
+   "Designed with tooth overlap to produce smooth part finish."
+  ],
+  "pdfPages": [
+   24
+  ],
+  "nofIcon": 4,
+  "helixIcon": "30°",
+  "line": "TuffCut GP",
+  "nof": 4,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "30°",
+  "features": [],
+  "toc": "GP PDF p14: 4 Flute, Square End/Corner Radius",
+  "materials": {
+   "scope": "general-purpose",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "N",
+    "P",
+    "S"
+   ],
+   "pages": [
+    242,
+    243,
+    244,
+    245,
+    246,
+    247,
+    248,
+    249
+   ]
+  }
+ },
+ "116": {
+  "id": "116",
+  "doc": "gp",
+  "family": "GP",
+  "title": "GP - Series 116",
+  "pages": [
+   211,
+   212,
+   213
+  ],
+  "notes": [
+   "Designed for general purpose milling in a broad range of materials.",
+   "Series 116 coated tools on page 213.",
+   "Series 116 uncoated tools on page 211."
+  ],
+  "pdfPages": [
+   34,
+   35,
+   36
+  ],
+  "nofIcon": 3,
+  "helixIcon": "30°",
+  "line": "TuffCut GP",
+  "nof": 3,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "30°",
+  "features": [],
+  "toc": "GP PDF p14: 3 Flute, Square End/Corner Radius",
+  "materials": {
+   "scope": "general-purpose",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "N",
+    "P",
+    "S"
+   ],
+   "pages": [
+    242,
+    243,
+    244,
+    245,
+    246,
+    247,
+    248,
+    249
+   ]
+  }
+ },
+ "121": {
+  "id": "121",
+  "doc": "gp",
+  "family": "GP",
+  "title": "GP - Series 121",
+  "pages": [
+   218,
+   219,
+   220,
+   221,
+   222,
+   223,
+   224
+  ],
+  "notes": [
+   "Designed for aggressive milling of most materials.",
+   "Micro sizes available.",
+   "Series 121 coated tools on page 224.",
+   "Series 121 uncoated tools on page 218."
+  ],
+  "pdfPages": [
+   41,
+   42,
+   43,
+   44,
+   45,
+   46,
+   47
+  ],
+  "nofIcon": 2,
+  "helixIcon": "30°",
+  "line": "TuffCut GP",
+  "nof": 2,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "30°",
+  "features": [],
+  "toc": "GP PDF p14: 2 Flute, Square End/Corner Radius",
+  "materials": {
+   "scope": "general-purpose",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "N",
+    "P",
+    "S"
+   ],
+   "pages": [
+    242,
+    243,
+    244,
+    245,
+    246,
+    247,
+    248,
+    249
+   ]
+  }
+ },
+ "122": {
+  "id": "122",
+  "doc": "gp",
+  "family": "GP",
+  "title": "GP - Series 122",
+  "pages": [
+   209
+  ],
+  "notes": [
+   "Designed for deep pocket milling and other applications where standard"
+  ],
+  "pdfPages": [
+   32
+  ],
+  "nofIcon": 4,
+  "helixIcon": "30°",
+  "line": "TuffCut GP",
+  "nof": 4,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "30°",
+  "features": [],
+  "toc": "GP PDF p14: 4 Flute, Square End/Corner Radius",
+  "materials": {
+   "scope": "general-purpose",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "N",
+    "P",
+    "S"
+   ],
+   "pages": [
+    242,
+    243,
+    244,
+    245,
+    246,
+    247,
+    248,
+    249
+   ]
+  }
+ },
+ "132": {
+  "id": "132",
+  "doc": "gp",
+  "family": "GP",
+  "title": "GP - Series 132",
+  "pages": [
+   210
+  ],
+  "notes": [
+   "Chipbreakers are designed to minimize cutting forces, reduce or eliminate",
+   "Chipbreaker geometry permits extremely high feed rates in",
+   "Designed for deep pocket milling and other applications",
+   "TiN coating available."
+  ],
+  "pdfPages": [
+   33
+  ],
+  "nofIcon": 4,
+  "helixIcon": "30°",
+  "line": "TuffCut GP",
+  "nof": 4,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "30°",
+  "features": [],
+  "toc": "GP PDF p14: 4 Flute, Square End/Corner Radius",
+  "materials": {
+   "scope": "general-purpose",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "N",
+    "P",
+    "S"
+   ],
+   "pages": [
+    242,
+    243,
+    244,
+    245,
+    246,
+    247,
+    248,
+    249
+   ]
+  }
+ },
+ "134": {
+  "id": "134",
+  "doc": "gp",
+  "family": "AL",
+  "title": "AL - Series 134",
+  "pages": [
+   214
+  ],
+  "notes": [
+   "High helix 3 flute design ideal for rapid stock removal in aluminum alloys.",
+   "Unique geometry.",
+   "Improved chip flow and prevents chips from packing in flute."
+  ],
+  "pdfPages": [
+   37
+  ],
+  "nofIcon": 3,
+  "helixIcon": "45°",
+  "cuttingData": [
+   {
+    "title": "134 Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 236,
+    "pdfPage": 59,
+    "groups": [
+     "N"
+    ]
+   },
+   {
+    "title": "134 Series Recommended Cutting Data - Slotting - Inch",
+    "page": 237,
+    "pdfPage": 60,
+    "groups": [
+     "N"
+    ]
+   }
+  ],
+  "line": "TuffCut AL",
+  "nof": 3,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "45°",
+  "features": [],
+  "toc": "GP PDF p14: 3 Flute, Square End/Corner Radius",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "N"
+   ]
+  }
+ },
+ "135": {
+  "id": "135",
+  "doc": "hp",
+  "family": "AL",
+  "title": "AL - Series 135",
+  "pages": [
+   78,
+   79
+  ],
+  "notes": [
+   "Extremely high chip loads - .040\"/1mm per tooth and above.",
+   "Performs equally well across a broad range of operating speeds.",
+   "Zirconium coating also available."
+  ],
+  "pdfPages": [
+   71,
+   72
+  ],
+  "nofIcon": 2,
+  "helixIcon": "30°",
+  "cuttingData": [
+   {
+    "title": "135 / 135N Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 169,
+    "pdfPage": 162,
+    "groups": [
+     "N"
+    ]
+   },
+   {
+    "title": "135 / 135N Series Recommended Cutting Data - Slotting - Inch",
+    "page": 170,
+    "pdfPage": 163,
+    "groups": [
+     "N"
+    ]
+   }
+  ],
+  "line": "TuffCut AL",
+  "nof": 2,
+  "corners": [
+   "corner radius"
+  ],
+  "helix": "30°",
+  "features": [],
+  "toc": "HP PDF p6",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "N"
+   ]
+  }
+ },
+ "136": {
+  "id": "136",
+  "doc": "hp",
+  "family": "AL",
+  "title": "AL - Series 136",
+  "pages": [
+   85,
+   86
+  ],
+  "notes": [
+   "High performance aluminum finisher out performs competitors.",
+   "Available with corner radius upon request. Call customer"
+  ],
+  "pdfPages": [
+   78,
+   79
+  ],
+  "nofIcon": 2,
+  "helixIcon": "45°",
+  "cuttingData": [
+   {
+    "title": "136 / 138 / 138N / 138CE Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 173,
+    "pdfPage": 166,
+    "groups": [
+     "N"
+    ]
+   },
+   {
+    "title": "136 / 138 / 138N / 138CE Series Recommended Cutting Data - Slotting - Inch",
+    "page": 174,
+    "pdfPage": 167,
+    "groups": [
+     "N"
+    ]
+   }
+  ],
+  "line": "TuffCut AL",
+  "nof": 2,
+  "corners": [
+   "square"
+  ],
+  "helix": "45°",
+  "features": [],
+  "toc": "HP PDF p6",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "N"
+   ]
+  }
+ },
+ "138": {
+  "id": "138",
+  "doc": "hp",
+  "family": "X-AL",
+  "title": "X-AL - Series 138",
+  "pages": [
+   88,
+   89,
+   90,
+   91,
+   92,
+   93
+  ],
+  "notes": [
+   "Series 138 takes aluminum milling to the extreme with chip loads and speeds, definitely"
+  ],
+  "pdfPages": [
+   81,
+   82,
+   83,
+   84,
+   85,
+   86
+  ],
+  "nofIcon": 3,
+  "helixIcon": "36°",
+  "cuttingData": [
+   {
+    "title": "136 / 138 / 138N / 138CE Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 173,
+    "pdfPage": 166,
+    "groups": [
+     "N"
+    ]
+   },
+   {
+    "title": "136 / 138 / 138N / 138CE Series Recommended Cutting Data - Slotting - Inch",
+    "page": 174,
+    "pdfPage": 167,
+    "groups": [
+     "N"
+    ]
+   }
+  ],
+  "line": "TuffCut X-AL",
+  "nof": 3,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "36°",
+  "features": [],
+  "toc": "HP PDF p6",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "N"
+   ]
+  }
+ },
+ "140": {
+  "id": "140",
+  "doc": "gp",
+  "family": "GP",
+  "title": "GP - Series 140",
+  "pages": [
+   199,
+   200
+  ],
+  "notes": [
+   "Ideal for most ferrous metal applications.",
+   "Series 140 coated tools on page 200.",
+   "New ALtima coated sizes.",
+   "Series 140 uncoated tools on page 199."
+  ],
+  "pdfPages": [
+   22,
+   23
+  ],
+  "nofIcon": 4,
+  "helixIcon": "30°",
+  "line": "TuffCut GP",
+  "nof": 4,
+  "corners": [
+   "ball"
+  ],
+  "helix": "30°",
+  "features": [],
+  "toc": "GP PDF p14: 4 Flute, Ball Nose",
+  "materials": {
+   "scope": "general-purpose",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "N",
+    "P",
+    "S"
+   ],
+   "pages": [
+    242,
+    243,
+    244,
+    245,
+    246,
+    247,
+    248,
+    249
+   ]
+  }
+ },
+ "150": {
+  "id": "150",
+  "doc": "gp",
+  "family": "GP",
+  "title": "GP - Series 150",
+  "pages": [
+   225,
+   226,
+   227,
+   228
+  ],
+  "notes": [
+   "Manufactured with a full ball radius end. Designed for milling",
+   "Ideal for most ferrous metal applications.",
+   "Micro sizes available.",
+   "Series 150 coated tools on page 228.",
+   "Series 150 uncoated tools on page 225."
+  ],
+  "pdfPages": [
+   48,
+   49,
+   50,
+   51
+  ],
+  "nofIcon": 2,
+  "helixIcon": "30°",
+  "line": "TuffCut GP",
+  "nof": 2,
+  "corners": [
+   "ball"
+  ],
+  "helix": "30°",
+  "features": [],
+  "toc": "GP PDF p14: 2 Flute, Ball Nose",
+  "materials": {
+   "scope": "general-purpose",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "N",
+    "P",
+    "S"
+   ],
+   "pages": [
+    242,
+    243,
+    244,
+    245,
+    246,
+    247,
+    248,
+    249
+   ]
+  }
+ },
+ "156": {
+  "id": "156",
+  "doc": "hp",
+  "family": "DM",
+  "title": "DM - Series 156",
+  "pages": [
+   100,
+   101,
+   102,
+   103
+  ],
+  "notes": [
+   "Series 156 is designed for high-productivity milling of hard and difficult to cut materials Rc 45-60.",
+   "Coated with ALtima Xtreme for materials Rc 52 and above.",
+   "Neck relief options."
+  ],
+  "pdfPages": [
+   93,
+   94,
+   95,
+   96
+  ],
+  "nofIcon": 2,
+  "helixIcon": "20°",
+  "cuttingData": [
+   {
+    "title": "156 Series Recommended Cutting Data - Contouring - Inch",
+    "page": 176,
+    "pdfPage": 169,
+    "groups": [
+     "H",
+     "M",
+     "P"
+    ]
+   },
+   {
+    "title": "156 Series Recommended Cutting Data - Contouring - Metric",
+    "page": 177,
+    "pdfPage": 170,
+    "groups": [
+     "H",
+     "M",
+     "P"
+    ]
+   }
+  ],
+  "line": "TuffCut DM",
+  "nof": 2,
+  "corners": [
+   "ball"
+  ],
+  "helix": "20°",
+  "features": [
+   "neck relief options"
+  ],
+  "toc": "HP PDF p6",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "M",
+    "P"
+   ]
+  }
+ },
+ "157": {
+  "id": "157",
+  "doc": "hp",
+  "family": "DM",
+  "title": "DM - Series 157",
+  "pages": [
+   104,
+   105,
+   106
+  ],
+  "notes": [
+   "Multi-Flute designed for hardened materials Rc 50-65. Available as a Square End and in 7 standard"
+  ],
+  "pdfPages": [
+   97,
+   98,
+   99
+  ],
+  "helixIcon": "45°",
+  "cuttingData": [
+   {
+    "title": "157 Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 178,
+    "pdfPage": 171,
+    "groups": [
+     "H",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "157 Series Recommended Cutting Data - Profile Milling - Metric",
+    "page": 179,
+    "pdfPage": 172,
+    "groups": [
+     "H",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "157 Series Recommended Cutting Data - Slotting - Inch",
+    "page": 180,
+    "pdfPage": 173,
+    "groups": [
+     "H",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "157 Series Recommended Cutting Data - Slotting - Metric",
+    "page": 181,
+    "pdfPage": 174,
+    "groups": [
+     "H",
+     "M",
+     "P",
+     "S"
+    ]
+   }
+  ],
+  "line": "TuffCut DM",
+  "nof": "table",
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "45°",
+  "features": [],
+  "toc": "HP PDF p6: Multi; NOF printed per row",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "158": {
+  "id": "158",
+  "doc": "hp",
+  "family": "DM",
+  "title": "DM - Series 158",
+  "pages": [
+   108,
+   109,
+   110
+  ],
+  "notes": [],
+  "pdfPages": [
+   101,
+   102,
+   103
+  ],
+  "nofIcon": 4,
+  "cuttingData": [
+   {
+    "title": "158 Series Recommended Cutting Data - High Feed Roughing - Inch",
+    "page": 182,
+    "pdfPage": 175,
+    "groups": []
+   },
+   {
+    "title": "158 Series Recommended Cutting Data - High Feed Roughing - Inch",
+    "page": 183,
+    "pdfPage": 176,
+    "groups": []
+   },
+   {
+    "title": "158 Series Recommended Cutting Data - High Feed Roughing - Metric",
+    "page": 184,
+    "pdfPage": 177,
+    "groups": []
+   },
+   {
+    "title": "158 Series Recommended Cutting Data - High Feed Roughing - Metric",
+    "page": 185,
+    "pdfPage": 178,
+    "groups": []
+   },
+   {
+    "title": "158 Series Recommended Cutting Data - Inch",
+    "page": 186,
+    "pdfPage": 179,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "158 Series Recommended Cutting Data - Inch",
+    "page": 187,
+    "pdfPage": 180,
+    "groups": []
+   },
+   {
+    "title": "158 Series Recommended Cutting Data - Metric",
+    "page": 188,
+    "pdfPage": 181,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "158 Series Recommended Cutting Data - Metric",
+    "page": 189,
+    "pdfPage": 182,
+    "groups": []
+   }
+  ],
+  "line": "TuffCut DM",
+  "nof": 4,
+  "corners": [
+   "corner radius"
+  ],
+  "helix": "35°/38° variable",
+  "features": [
+   "neck relief"
+  ],
+  "toc": "HP PDF p6",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "163": {
+  "id": "163",
+  "doc": "gp",
+  "family": "GP",
+  "title": "GP - Series 163",
+  "pages": [
+   202,
+   203,
+   204,
+   205
+  ],
+  "notes": [
+   "Designed for aggressive milling of most materials with reduced deflection,",
+   "Micro sizes available.",
+   "Series 163 coated tools on page 205.",
+   "Series 163 uncoated tools on page 202."
+  ],
+  "pdfPages": [
+   25,
+   26,
+   27,
+   28
+  ],
+  "nofIcon": 4,
+  "helixIcon": "30°",
+  "line": "TuffCut GP",
+  "nof": 4,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "30°",
+  "features": [],
+  "toc": "GP PDF p14: 4 Flute, Square End/Corner Radius",
+  "materials": {
+   "scope": "general-purpose",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "N",
+    "P",
+    "S"
+   ],
+   "pages": [
+    242,
+    243,
+    244,
+    245,
+    246,
+    247,
+    248,
+    249
+   ]
+  }
+ },
+ "164": {
+  "id": "164",
+  "doc": "gp",
+  "family": "GP",
+  "title": "GP - Series 164",
+  "pages": [
+   229,
+   230,
+   231,
+   232,
+   233
+  ],
+  "notes": [
+   "Designed for aggressive milling of most materials with reduced deflection,",
+   "Micro sizes available.",
+   "Series 164 coated tools on page 233.",
+   "Series 164 uncoated tools on page 229."
+  ],
+  "pdfPages": [
+   52,
+   53,
+   54,
+   55,
+   56
+  ],
+  "nofIcon": 2,
+  "helixIcon": "30°",
+  "line": "TuffCut GP",
+  "nof": 2,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "30°",
+  "features": [],
+  "toc": "GP PDF p14: 2 Flute, Square End/Corner Radius",
+  "materials": {
+   "scope": "general-purpose",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "N",
+    "P",
+    "S"
+   ],
+   "pages": [
+    242,
+    243,
+    244,
+    245,
+    246,
+    247,
+    248,
+    249
+   ]
+  }
+ },
+ "165": {
+  "id": "165",
+  "doc": "gp",
+  "family": "GP",
+  "title": "GP - Series 165",
+  "pages": [
+   206,
+   207,
+   208
+  ],
+  "notes": [
+   "Manufactured with full ball radius end.",
+   "Ideal for most ferrous metal applications.",
+   "Series 165 coated tools on page 208.",
+   "Series 165 uncoated tools on page 206."
+  ],
+  "pdfPages": [
+   29,
+   30,
+   31
+  ],
+  "nofIcon": 4,
+  "helixIcon": "30°",
+  "line": "TuffCut GP",
+  "nof": 4,
+  "corners": [
+   "ball"
+  ],
+  "helix": "30°",
+  "features": [],
+  "toc": "GP PDF p14: 4 Flute, Ball Nose",
+  "materials": {
+   "scope": "general-purpose",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "N",
+    "P",
+    "S"
+   ],
+   "pages": [
+    242,
+    243,
+    244,
+    245,
+    246,
+    247,
+    248,
+    249
+   ]
+  }
+ },
+ "169": {
+  "id": "169",
+  "doc": "gp",
+  "family": "GP",
+  "title": "GP - Series 169",
+  "pages": [
+   215,
+   216,
+   217
+  ],
+  "notes": [
+   "Designed for aggressive milling of most materials.",
+   "Provides reduced deflection, improved tool life and overall economy.",
+   "Series 169 coated tools on page 217.",
+   "Series 169 uncoated tools on page 215."
+  ],
+  "pdfPages": [
+   38,
+   39,
+   40
+  ],
+  "nofIcon": 3,
+  "helixIcon": "30°",
+  "line": "TuffCut GP",
+  "nof": 3,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "30°",
+  "features": [],
+  "toc": "GP PDF p14: 3 Flute, Square End/Corner Radius",
+  "materials": {
+   "scope": "general-purpose",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "N",
+    "P",
+    "S"
+   ],
+   "pages": [
+    242,
+    243,
+    244,
+    245,
+    246,
+    247,
+    248,
+    249
+   ]
+  }
+ },
+ "177": {
+  "id": "177",
+  "doc": "hp",
+  "family": "XR",
+  "title": "XR - Series 177",
+  "pages": [
+   50,
+   51,
+   52,
+   53,
+   54
+  ],
+  "notes": [
+   "Designed for EXTREME Productivity. Unique flute geometry",
+   "Variable helix."
+  ],
+  "pdfPages": [
+   43,
+   44,
+   45,
+   46,
+   47
+  ],
+  "nofIcon": 4,
+  "cuttingData": [
+   {
+    "title": "279 / 177 / 177L / 177S / 179 / 179L Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 142,
+    "pdfPage": 135,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "279 / 177 / 177L / 177S / 179 / 179L Series Recommended Cutting Data - Profile Milling - Metric",
+    "page": 143,
+    "pdfPage": 136,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "279 / 177 / 177L / 177S / 179 / 179L Series Recommended Cutting Data - Slotting - Inch",
+    "page": 144,
+    "pdfPage": 137,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "279 / 177 / 177L / 177S / 179 / 179L Series Recommended Cutting Data - Slotting - Metric",
+    "page": 145,
+    "pdfPage": 138,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   }
+  ],
+  "line": "TuffCut XR",
+  "nof": 4,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "35°/38° variable",
+  "features": [],
+  "toc": "HP PDF p5",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "178": {
+  "id": "178",
+  "doc": "hp",
+  "family": "XR",
+  "title": "XR - Series 178",
+  "pages": [
+   59,
+   60,
+   61
+  ],
+  "notes": [
+   "Designed for EXTREME Productivity. Gain 20% or more in productivity"
+  ],
+  "pdfPages": [
+   52,
+   53,
+   54
+  ],
+  "nofIcon": 5,
+  "helixIcon": "38°",
+  "cuttingData": [
+   {
+    "title": "178 / 178N Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 146,
+    "pdfPage": 139,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "178 / 178N Series Recommended Cutting Data - Profile Milling - Metric",
+    "page": 147,
+    "pdfPage": 140,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "178 / 178N Series Recommended Cutting Data - Slotting - Inch",
+    "page": 148,
+    "pdfPage": 141,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "178 / 178N Series Recommended Cutting Data - Slotting - Metric",
+    "page": 149,
+    "pdfPage": 142,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   }
+  ],
+  "line": "TuffCut XR",
+  "nof": 5,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "38°",
+  "features": [],
+  "toc": "HP PDF p5",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "179": {
+  "id": "179",
+  "doc": "hp",
+  "family": "XR",
+  "title": "XR - Series 179",
+  "pages": [
+   57,
+   58
+  ],
+  "notes": [
+   "Variable helix."
+  ],
+  "pdfPages": [
+   50,
+   51
+  ],
+  "nofIcon": 4,
+  "cuttingData": [
+   {
+    "title": "279 / 177 / 177L / 177S / 179 / 179L Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 142,
+    "pdfPage": 135,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "279 / 177 / 177L / 177S / 179 / 179L Series Recommended Cutting Data - Profile Milling - Metric",
+    "page": 143,
+    "pdfPage": 136,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "279 / 177 / 177L / 177S / 179 / 179L Series Recommended Cutting Data - Slotting - Inch",
+    "page": 144,
+    "pdfPage": 137,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "279 / 177 / 177L / 177S / 179 / 179L Series Recommended Cutting Data - Slotting - Metric",
+    "page": 145,
+    "pdfPage": 138,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   }
+  ],
+  "line": "TuffCut XR",
+  "nof": 4,
+  "corners": [
+   "ball"
+  ],
+  "helix": "35°/38° variable",
+  "features": [],
+  "toc": "HP PDF p5",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "180": {
+  "id": "180",
+  "doc": "hp",
+  "family": "XR7",
+  "title": "XR7 - Series 180",
+  "pages": [
+   63,
+   64,
+   65
+  ],
+  "notes": [
+   "40% increase in productivity over a 5 flute tool.",
+   "Designed specifically for Titanium, Inconel and similar materials.",
+   "ALtima Blaze coating for increased performance."
+  ],
+  "pdfPages": [
+   56,
+   57,
+   58
+  ],
+  "nofIcon": 7,
+  "helixIcon": "38°",
+  "cuttingData": [
+   {
+    "title": "180 / 180CB / 180N Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 150,
+    "pdfPage": 143,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "180 / 180CB / 180N Series Recommended Cutting Data - Profile Milling - Metric",
+    "page": 151,
+    "pdfPage": 144,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   }
+  ],
+  "line": "TuffCut XR7",
+  "nof": 7,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "38°",
+  "features": [],
+  "toc": "HP PDF p5",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "192": {
+  "id": "192",
+  "doc": "gp",
+  "family": "DM",
+  "title": "DM - Series 192",
+  "pages": [
+   234
+  ],
+  "notes": [
+   "Designed for high-speed machining of cast iron, mild steels and similar materials.",
+   "High volumetric metal removal rates.",
+   "Achieve 20% higher speed, 50% higher feed than"
+  ],
+  "pdfPages": [
+   57
+  ],
+  "helixIcon": "20°",
+  "cuttingData": [
+   {
+    "title": "192 Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 238,
+    "pdfPage": 61,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "192 Series Recommended Cutting Data - Profile Milling - Metric",
+    "page": 239,
+    "pdfPage": 62,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "192 Series Recommended Cutting Data - Slotting - Inch",
+    "page": 240,
+    "pdfPage": 63,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "192 Series Recommended Cutting Data - Slotting - Metric",
+    "page": 241,
+    "pdfPage": 64,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   }
+  ],
+  "line": "TuffCut DM",
+  "nof": "table",
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "20°",
+  "features": [],
+  "toc": "GP PDF p14: Multi-Flute; NOF printed per row",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "250": {
+  "id": "250",
+  "doc": "hp",
+  "family": "3D",
+  "title": "3D - Series 250",
+  "pages": [
+   68
+  ],
+  "notes": [
+   "Features Benefits",
+   "High performance geometry. • Roughing and finishing applications.",
+   "Radius tolerance + 0.010mm. • Accurate finishing in 3D shapes.",
+   "ALtima Blaze coating. • Hardened steels <50HRC - alloy steel - stainless steel - titanium.",
+   "Economical price level. • Reduced tooling costs."
+  ],
+  "pdfPages": [
+   61
+  ],
+  "nofIcon": 2,
+  "helixIcon": "30°",
+  "cuttingData": [
+   {
+    "title": "250 Series Recommended Cutting Data - Inch Roughing Finishing",
+    "page": 152,
+    "pdfPage": 145,
+    "groups": []
+   },
+   {
+    "title": "250 Series Recommended Cutting Data - Metric Roughing Finishing",
+    "page": 153,
+    "pdfPage": 146,
+    "groups": []
+   }
+  ],
+  "line": "TuffCut 3D",
+  "nof": 2,
+  "corners": [
+   "ball"
+  ],
+  "helix": "30°",
+  "features": [],
+  "toc": "HP PDF p6"
+ },
+ "277": {
+  "id": "277",
+  "doc": "hp",
+  "family": "XT",
+  "title": "XT - Series 277",
+  "pages": [
+   21,
+   22,
+   23,
+   24,
+   25
+  ],
+  "notes": [
+   "Improved geometries.",
+   "Enhanced corner protection.",
+   "Variable helix."
+  ],
+  "pdfPages": [
+   14,
+   15,
+   16,
+   17,
+   18
+  ],
+  "nofIcon": 4,
+  "cuttingData": [
+   {
+    "title": "277 / 277CB / 277N Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 130,
+    "pdfPage": 123,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "277 / 277CB / 277N Series Recommended Cutting Data - Profile Milling - Metric",
+    "page": 131,
+    "pdfPage": 124,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "277 / 277CB / 277N Series Recommended Cutting Data - Slotting - Inch",
+    "page": 132,
+    "pdfPage": 125,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "277 / 277CB / 277N Series Recommended Cutting Data - Slotting - Metric",
+    "page": 133,
+    "pdfPage": 126,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   }
+  ],
+  "line": "TuffCut XT",
+  "nof": 4,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "38°/41° variable",
+  "features": [],
+  "toc": "HP PDF p4",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "278": {
+  "id": "278",
+  "doc": "hp",
+  "family": "XT",
+  "title": "XT - Series 278",
+  "pages": [
+   33,
+   34,
+   35,
+   36,
+   37,
+   38,
+   39,
+   40,
+   41,
+   42,
+   43
+  ],
+  "notes": [
+   "Improved geometries.",
+   "Enhanced corner protection."
+  ],
+  "pdfPages": [
+   26,
+   27,
+   28,
+   29,
+   30,
+   31,
+   32,
+   33,
+   34,
+   35,
+   36
+  ],
+  "nofIcon": 5,
+  "helixIcon": "40°",
+  "cuttingData": [
+   {
+    "title": "278 / 278CB / 278N Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 136,
+    "pdfPage": 129,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "278 / 278CB / 278N Series Recommended Cutting Data - Profile Milling - Metric",
+    "page": 137,
+    "pdfPage": 130,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "278 / 278CB / 278N Series Recommended Cutting Data - Slotting - Inch",
+    "page": 138,
+    "pdfPage": 131,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "278 / 278CB / 278N Series Recommended Cutting Data - Slotting - Metric",
+    "page": 139,
+    "pdfPage": 132,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   }
+  ],
+  "line": "TuffCut XT",
+  "nof": 5,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "40°",
+  "features": [],
+  "toc": "HP PDF p4",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "279": {
+  "id": "279",
+  "doc": "hp",
+  "family": "XT",
+  "title": "XT - Series 279",
+  "pages": [
+   32
+  ],
+  "notes": [
+   "ALtima Blaze coated.",
+   "Enhanced cutting edge quality.",
+   "Variable helix and flute spacing"
+  ],
+  "pdfPages": [
+   25
+  ],
+  "nofIcon": 4,
+  "cuttingData": [
+   {
+    "title": "279 Series Recommended Cutting Data - Contouring - Inch",
+    "page": 134,
+    "pdfPage": 127,
+    "groups": []
+   },
+   {
+    "title": "279 Series Recommended Cutting Data - Contouring - Metric",
+    "page": 135,
+    "pdfPage": 128,
+    "groups": []
+   },
+   {
+    "title": "279 / 177 / 177L / 177S / 179 / 179L Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 142,
+    "pdfPage": 135,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "279 / 177 / 177L / 177S / 179 / 179L Series Recommended Cutting Data - Profile Milling - Metric",
+    "page": 143,
+    "pdfPage": 136,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "279 / 177 / 177L / 177S / 179 / 179L Series Recommended Cutting Data - Slotting - Inch",
+    "page": 144,
+    "pdfPage": 137,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "279 / 177 / 177L / 177S / 179 / 179L Series Recommended Cutting Data - Slotting - Metric",
+    "page": 145,
+    "pdfPage": 138,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   }
+  ],
+  "line": "TuffCut XT",
+  "nof": 4,
+  "corners": [
+   "ball"
+  ],
+  "helix": "35°/38° variable",
+  "features": [],
+  "toc": "HP PDF p4",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "334": {
+  "id": "334",
+  "doc": "hp",
+  "family": "XR-AL",
+  "title": "XR-AL - Series 334",
+  "pages": [
+   87
+  ],
+  "notes": [
+   "Enhanced flute design for improved chip control and reduced",
+   "Chipbreaker design provides better part finish than a traditional",
+   "Variable helix strengthens the tool corner reducing the chance",
+   "Manufactured from premium grade ultrafine carbide material"
+  ],
+  "pdfPages": [
+   80
+  ],
+  "nofIcon": 3,
+  "helixIcon": "45°",
+  "cuttingData": [
+   {
+    "title": "334 Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 175,
+    "pdfPage": 168,
+    "groups": [
+     "N"
+    ]
+   }
+  ],
+  "line": "TuffCut XR-AL",
+  "nof": 3,
+  "corners": [
+   "corner radius"
+  ],
+  "helix": "45°",
+  "features": [],
+  "toc": "HP PDF p6",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "N"
+   ]
+  }
+ },
+ "380": {
+  "id": "380",
+  "doc": "hp",
+  "family": "XT9",
+  "title": "XT9 - Series 380",
+  "pages": [
+   48
+  ],
+  "notes": [
+   "Designed for high speed machining of Titanium, Inconel, and similar materials.",
+   "New ALtima Xtreme (AX) coating designed for high speed machining and dry machining.",
+   "Uneven number of flutes reduces harmonics to provide stable machining zones."
+  ],
+  "pdfPages": [
+   41
+  ],
+  "nofIcon": 9,
+  "helixIcon": "37°",
+  "cuttingData": [
+   {
+    "title": "380 / 380CB Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 140,
+    "pdfPage": 133,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "380 / 380CB Series Recommended Cutting Data - Profile Milling - Metric",
+    "page": 141,
+    "pdfPage": 134,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   }
+  ],
+  "line": "TuffCut XT9",
+  "nof": 9,
+  "corners": [
+   "corner radius"
+  ],
+  "helix": "37°",
+  "features": [],
+  "toc": "HP PDF p4",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "XV5CB": {
+  "id": "XV5CB",
+  "doc": "hp",
+  "family": "XV",
+  "title": "XV - Series XV5CB",
+  "pages": [
+   17
+  ],
+  "notes": [
+   "For deep, dynamic milling applications.",
+   "A L tima Q coating for optimal heat and wear • Staggered chipbreaker technology allows for",
+   "40° helix, variable pitch geometry for smooth",
+   "Optimized substrate grade provides increased",
+   "TRS and toughness.",
+   "Thick core design for increased strength in"
+  ],
+  "pdfPages": [
+   10
+  ],
+  "nofIcon": 5,
+  "helixIcon": "40°",
+  "cuttingData": [
+   {
+    "title": "XV5CB Series Recommended Cutting Data - Profile Milling with 3xD Cutting Length - Inch",
+    "page": 122,
+    "pdfPage": 115,
+    "groups": [
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "XV5CB Series Recommended Cutting Data - Profile Milling with 3xD Cutting Length - Inch",
+    "page": 123,
+    "pdfPage": 116,
+    "groups": []
+   },
+   {
+    "title": "XV5CB Series Recommended Cutting Data - Profile Milling with 4xD Cutting Length - Inch",
+    "page": 124,
+    "pdfPage": 117,
+    "groups": [
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "XV5CB Series Recommended Cutting Data - Profile Milling with 4xD Cutting Length - Inch",
+    "page": 125,
+    "pdfPage": 118,
+    "groups": []
+   }
+  ],
+  "line": "TuffCut XV",
+  "nof": 5,
+  "corners": [
+   "corner radius"
+  ],
+  "helix": "40°",
+  "features": [
+   "chipbreaker"
+  ],
+  "toc": "HP PDF p4",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "XV7": {
+  "id": "XV7",
+  "doc": "hp",
+  "family": "XV",
+  "title": "XV - Series XV7",
+  "pages": [
+   18,
+   19
+  ],
+  "notes": [
+   "Center-cutting end geometry for increased ramp • Continuous edge and staggered chipbreaker",
+   "38° helix, variable pitch geometry for smooth",
+   "Thick core design for increased strength in"
+  ],
+  "pdfPages": [
+   11,
+   12
+  ],
+  "nofIcon": 7,
+  "helixIcon": "38°",
+  "cuttingData": [
+   {
+    "title": "XV7 / XV7CB Series Recommended Cutting Data - Profile Milling with ≤ 2xD Cutting Length - Inch",
+    "page": 126,
+    "pdfPage": 119,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "XV7 / XV7CB Series Recommended Cutting Data - Profile Milling with 3xD Cutting Length - Inch",
+    "page": 127,
+    "pdfPage": 120,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "XV7 / XV7CB Series Recommended Cutting Data - Profile Milling with 4xD Cutting Length - Inch",
+    "page": 128,
+    "pdfPage": 121,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "XV7 / XV7CB Series Recommended Cutting Data - Chip Thickness Compensation Factors - Inch",
+    "page": 129,
+    "pdfPage": 122,
+    "groups": []
+   }
+  ],
+  "line": "TuffCut XV",
+  "nof": 7,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "38°",
+  "features": [],
+  "toc": "HP PDF p4",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "XV7CB": {
+  "id": "XV7CB",
+  "doc": "hp",
+  "family": "XV",
+  "title": "XV - Series XV7CB",
+  "pages": [
+   20
+  ],
+  "notes": [
+   "Center-cutting end geometry for increased ramp • Continuous edge and staggered chipbreaker",
+   "38° helix, variable pitch geometry for smooth",
+   "Thick core design for increased strength in"
+  ],
+  "pdfPages": [
+   13
+  ],
+  "nofIcon": 7,
+  "helixIcon": "38°",
+  "cuttingData": [
+   {
+    "title": "XV7 / XV7CB Series Recommended Cutting Data - Profile Milling with ≤ 2xD Cutting Length - Inch",
+    "page": 126,
+    "pdfPage": 119,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "XV7 / XV7CB Series Recommended Cutting Data - Profile Milling with 3xD Cutting Length - Inch",
+    "page": 127,
+    "pdfPage": 120,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "XV7 / XV7CB Series Recommended Cutting Data - Profile Milling with 4xD Cutting Length - Inch",
+    "page": 128,
+    "pdfPage": 121,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "XV7 / XV7CB Series Recommended Cutting Data - Chip Thickness Compensation Factors - Inch",
+    "page": 129,
+    "pdfPage": 122,
+    "groups": []
+   }
+  ],
+  "line": "TuffCut XV",
+  "nof": 7,
+  "corners": [
+   "corner radius"
+  ],
+  "helix": "38°",
+  "features": [
+   "chipbreaker"
+  ],
+  "toc": "HP PDF p4",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "277CB": {
+  "id": "277CB",
+  "doc": "hp",
+  "family": "XT",
+  "title": "XT - Series 277CB",
+  "pages": [
+   26,
+   27,
+   28
+  ],
+  "notes": [
+   "Staggered chipbreaker technology.",
+   "Enhanced corner protection.",
+   "Variable helix."
+  ],
+  "pdfPages": [
+   19,
+   20,
+   21
+  ],
+  "nofIcon": 4,
+  "cuttingData": [
+   {
+    "title": "277 / 277CB / 277N Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 130,
+    "pdfPage": 123,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "277 / 277CB / 277N Series Recommended Cutting Data - Profile Milling - Metric",
+    "page": 131,
+    "pdfPage": 124,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "277 / 277CB / 277N Series Recommended Cutting Data - Slotting - Inch",
+    "page": 132,
+    "pdfPage": 125,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "277 / 277CB / 277N Series Recommended Cutting Data - Slotting - Metric",
+    "page": 133,
+    "pdfPage": 126,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   }
+  ],
+  "line": "TuffCut XT",
+  "nof": 4,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "38°/41° variable",
+  "features": [
+   "chipbreaker"
+  ],
+  "toc": "HP PDF p4",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "277N": {
+  "id": "277N",
+  "doc": "hp",
+  "family": "XT",
+  "title": "XT - Series 277N",
+  "pages": [
+   29,
+   30,
+   31
+  ],
+  "notes": [
+   "Improved geometries.",
+   "Enhanced corner protection.",
+   "Variable helix."
+  ],
+  "pdfPages": [
+   22,
+   23,
+   24
+  ],
+  "nofIcon": 4,
+  "cuttingData": [
+   {
+    "title": "277 / 277CB / 277N Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 130,
+    "pdfPage": 123,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "277 / 277CB / 277N Series Recommended Cutting Data - Profile Milling - Metric",
+    "page": 131,
+    "pdfPage": 124,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "277 / 277CB / 277N Series Recommended Cutting Data - Slotting - Inch",
+    "page": 132,
+    "pdfPage": 125,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "277 / 277CB / 277N Series Recommended Cutting Data - Slotting - Metric",
+    "page": 133,
+    "pdfPage": 126,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   }
+  ],
+  "line": "TuffCut XT",
+  "nof": 4,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "38°/41° variable",
+  "features": [
+   "neck relief"
+  ],
+  "toc": "HP PDF p4",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "278CB": {
+  "id": "278CB",
+  "doc": "hp",
+  "family": "XT",
+  "title": "XT - Series 278CB",
+  "pages": [
+   44,
+   45
+  ],
+  "notes": [
+   "Staggered chipbreaker technology.",
+   "Improved geometries.",
+   "Enhanced corner protection."
+  ],
+  "pdfPages": [
+   37,
+   38
+  ],
+  "nofIcon": 5,
+  "helixIcon": "40°",
+  "cuttingData": [
+   {
+    "title": "278 / 278CB / 278N Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 136,
+    "pdfPage": 129,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "278 / 278CB / 278N Series Recommended Cutting Data - Profile Milling - Metric",
+    "page": 137,
+    "pdfPage": 130,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "278 / 278CB / 278N Series Recommended Cutting Data - Slotting - Inch",
+    "page": 138,
+    "pdfPage": 131,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "278 / 278CB / 278N Series Recommended Cutting Data - Slotting - Metric",
+    "page": 139,
+    "pdfPage": 132,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   }
+  ],
+  "line": "TuffCut XT",
+  "nof": 5,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "40°",
+  "features": [
+   "chipbreaker"
+  ],
+  "toc": "HP PDF p4",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "278N": {
+  "id": "278N",
+  "doc": "hp",
+  "family": "XT",
+  "title": "XT - Series 278N",
+  "pages": [
+   46,
+   47
+  ],
+  "notes": [
+   "Improved geometries.",
+   "Enhanced corner protection."
+  ],
+  "pdfPages": [
+   39,
+   40
+  ],
+  "nofIcon": 5,
+  "helixIcon": "40°",
+  "cuttingData": [
+   {
+    "title": "278 / 278CB / 278N Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 136,
+    "pdfPage": 129,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "278 / 278CB / 278N Series Recommended Cutting Data - Profile Milling - Metric",
+    "page": 137,
+    "pdfPage": 130,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "278 / 278CB / 278N Series Recommended Cutting Data - Slotting - Inch",
+    "page": 138,
+    "pdfPage": 131,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "278 / 278CB / 278N Series Recommended Cutting Data - Slotting - Metric",
+    "page": 139,
+    "pdfPage": 132,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   }
+  ],
+  "line": "TuffCut XT",
+  "nof": 5,
+  "corners": [
+   "corner radius"
+  ],
+  "helix": "40°",
+  "features": [
+   "neck relief"
+  ],
+  "toc": "HP PDF p4",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "380CB": {
+  "id": "380CB",
+  "doc": "hp",
+  "family": "XT",
+  "title": "XT - Series 380CB",
+  "pages": [
+   49
+  ],
+  "notes": [
+   "Staggered Chipbreaker Technology For Reduced Cutting Forces And Excellent Chip Management.",
+   "Uneven 9 Flute Designed For High Feed Rates With Reduced Harmonics For Stable Machining.",
+   "ALtima Xtreme Coating Is Excellent For High-Heat And Wear Resistance."
+  ],
+  "pdfPages": [
+   42
+  ],
+  "nofIcon": 9,
+  "helixIcon": "37°",
+  "cuttingData": [
+   {
+    "title": "380 / 380CB Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 140,
+    "pdfPage": 133,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "380 / 380CB Series Recommended Cutting Data - Profile Milling - Metric",
+    "page": 141,
+    "pdfPage": 134,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   }
+  ],
+  "line": "TuffCut XT",
+  "nof": 9,
+  "corners": [
+   "corner radius"
+  ],
+  "helix": "37°",
+  "features": [
+   "chipbreaker"
+  ],
+  "toc": "HP PDF p4",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "177L": {
+  "id": "177L",
+  "doc": "hp",
+  "family": "XR",
+  "title": "XR - Series 177L",
+  "pages": [
+   55
+  ],
+  "notes": [],
+  "pdfPages": [
+   48
+  ],
+  "nofIcon": 4,
+  "cuttingData": [
+   {
+    "title": "279 / 177 / 177L / 177S / 179 / 179L Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 142,
+    "pdfPage": 135,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "279 / 177 / 177L / 177S / 179 / 179L Series Recommended Cutting Data - Profile Milling - Metric",
+    "page": 143,
+    "pdfPage": 136,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "279 / 177 / 177L / 177S / 179 / 179L Series Recommended Cutting Data - Slotting - Inch",
+    "page": 144,
+    "pdfPage": 137,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "279 / 177 / 177L / 177S / 179 / 179L Series Recommended Cutting Data - Slotting - Metric",
+    "page": 145,
+    "pdfPage": 138,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   }
+  ],
+  "line": "TuffCut XR",
+  "nof": 4,
+  "corners": [
+   "corner radius"
+  ],
+  "helix": "35°/38° variable",
+  "features": [
+   "neck relief"
+  ],
+  "toc": "HP PDF p5",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "177S": {
+  "id": "177S",
+  "doc": "hp",
+  "family": "XR",
+  "title": "XR - Series 177S",
+  "pages": [
+   56
+  ],
+  "notes": [
+   "Variable helix."
+  ],
+  "pdfPages": [
+   49
+  ],
+  "nofIcon": 4,
+  "cuttingData": [
+   {
+    "title": "279 / 177 / 177L / 177S / 179 / 179L Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 142,
+    "pdfPage": 135,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "279 / 177 / 177L / 177S / 179 / 179L Series Recommended Cutting Data - Profile Milling - Metric",
+    "page": 143,
+    "pdfPage": 136,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "279 / 177 / 177L / 177S / 179 / 179L Series Recommended Cutting Data - Slotting - Inch",
+    "page": 144,
+    "pdfPage": 137,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "279 / 177 / 177L / 177S / 179 / 179L Series Recommended Cutting Data - Slotting - Metric",
+    "page": 145,
+    "pdfPage": 138,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   }
+  ],
+  "line": "TuffCut XR",
+  "nof": 4,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "35°/38° variable",
+  "features": [
+   "neck relief"
+  ],
+  "toc": "HP PDF p5",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "179L": {
+  "id": "179L",
+  "doc": "hp",
+  "family": "XR",
+  "title": "XR - Series 179L",
+  "pages": [
+   58
+  ],
+  "notes": [
+   "Variable helix."
+  ],
+  "pdfPages": [
+   51
+  ],
+  "nofIcon": 4,
+  "cuttingData": [
+   {
+    "title": "279 / 177 / 177L / 177S / 179 / 179L Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 142,
+    "pdfPage": 135,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "279 / 177 / 177L / 177S / 179 / 179L Series Recommended Cutting Data - Profile Milling - Metric",
+    "page": 143,
+    "pdfPage": 136,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "279 / 177 / 177L / 177S / 179 / 179L Series Recommended Cutting Data - Slotting - Inch",
+    "page": 144,
+    "pdfPage": 137,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "279 / 177 / 177L / 177S / 179 / 179L Series Recommended Cutting Data - Slotting - Metric",
+    "page": 145,
+    "pdfPage": 138,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   }
+  ],
+  "line": "TuffCut XR",
+  "nof": 4,
+  "corners": [
+   "ball"
+  ],
+  "helix": "35°/38° variable",
+  "features": [
+   "neck relief"
+  ],
+  "toc": "HP PDF p5",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "178N": {
+  "id": "178N",
+  "doc": "hp",
+  "family": "XR",
+  "title": "XR - Series 178N",
+  "pages": [
+   62
+  ],
+  "notes": [],
+  "pdfPages": [
+   55
+  ],
+  "nofIcon": 5,
+  "helixIcon": "38°",
+  "cuttingData": [
+   {
+    "title": "178 / 178N Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 146,
+    "pdfPage": 139,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "178 / 178N Series Recommended Cutting Data - Profile Milling - Metric",
+    "page": 147,
+    "pdfPage": 140,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "178 / 178N Series Recommended Cutting Data - Slotting - Inch",
+    "page": 148,
+    "pdfPage": 141,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "178 / 178N Series Recommended Cutting Data - Slotting - Metric",
+    "page": 149,
+    "pdfPage": 142,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   }
+  ],
+  "line": "TuffCut XR",
+  "nof": 5,
+  "corners": [
+   "corner radius"
+  ],
+  "helix": "38°",
+  "features": [
+   "neck relief"
+  ],
+  "toc": "HP PDF p5",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "180CB": {
+  "id": "180CB",
+  "doc": "hp",
+  "family": "XR7",
+  "title": "XR7 - Series 180CB",
+  "pages": [
+   66
+  ],
+  "notes": [
+   "Long and X-Long lengths now with chipbreaker. • Prolongs life of tool by reducing re-cutting of chips.",
+   "Higher feed rates allowed. • Creates shorter chips that can be evacuated more easily.",
+   "Cutting forces minimized resulting in straighter • Corner Radius provides a stronger corner for less wear",
+   "Chatter reduced or eliminated."
+  ],
+  "pdfPages": [
+   59
+  ],
+  "nofIcon": 7,
+  "helixIcon": "38°",
+  "cuttingData": [
+   {
+    "title": "180 / 180CB / 180N Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 150,
+    "pdfPage": 143,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "180 / 180CB / 180N Series Recommended Cutting Data - Profile Milling - Metric",
+    "page": 151,
+    "pdfPage": 144,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   }
+  ],
+  "line": "TuffCut XR7",
+  "nof": 7,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "38°",
+  "features": [
+   "chipbreaker"
+  ],
+  "toc": "HP PDF p5",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "180N": {
+  "id": "180N",
+  "doc": "hp",
+  "family": "XR7",
+  "title": "XR7 - Series 180N",
+  "pages": [
+   67
+  ],
+  "notes": [
+   "40% increase in productivity over a 5 flute tool.",
+   "Designed specifically for Titanium, Inconel and similar materials.",
+   "ALtima Blaze coating for increased performance."
+  ],
+  "pdfPages": [
+   60
+  ],
+  "nofIcon": 7,
+  "helixIcon": "38°",
+  "cuttingData": [
+   {
+    "title": "180 / 180CB / 180N Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 150,
+    "pdfPage": 143,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "180 / 180CB / 180N Series Recommended Cutting Data - Profile Milling - Metric",
+    "page": 151,
+    "pdfPage": 144,
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "P",
+     "S"
+    ]
+   }
+  ],
+  "line": "TuffCut XR7",
+  "nof": 7,
+  "corners": [
+   "corner radius"
+  ],
+  "helix": "38°",
+  "features": [
+   "neck relief"
+  ],
+  "toc": "HP PDF p5",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "K",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ },
+ "MFPB": {
+  "id": "MFPB",
+  "doc": "hp",
+  "family": "3D",
+  "title": "3D - Series MFPB",
+  "pages": [
+   69
+  ],
+  "notes": [
+   "Multi-Flute Parallel Ballnose.",
+   "Designed for 4 & 5 axis, 3D surfacing applications in aerospace & medical materials.",
+   "Features Benefits",
+   "Multi-flute design. • High feed rates in semi-finishing & finishing applications.",
+   "ALtima Xtreme coating. • Excellent heat & wear resistance in tough-to-machine materials.",
+   "Short & long overall lengths. • Provides versatility for complex, tough to reach part features."
+  ],
+  "pdfPages": [
+   62
+  ],
+  "helixIcon": "35°",
+  "cuttingData": [
+   {
+    "title": "MFPB Series Recommended Cutting Data - Speeds - Inch",
+    "page": 154,
+    "pdfPage": 147,
+    "groups": []
+   },
+   {
+    "title": "MFPB Series Recommended Cutting Data - Inch",
+    "page": 155,
+    "pdfPage": 148,
+    "groups": []
+   },
+   {
+    "title": "MFPB Series Recommended Cutting Data - Speeds - Metric",
+    "page": 156,
+    "pdfPage": 149,
+    "groups": []
+   },
+   {
+    "title": "MFPB Series Recommended Cutting Data - Metric",
+    "page": 157,
+    "pdfPage": 150,
+    "groups": []
+   }
+  ],
+  "line": "TuffCut 3D",
+  "nof": "table",
+  "corners": [
+   "ball"
+  ],
+  "helix": "35°",
+  "features": [],
+  "toc": "HP PDF p6: Multi; NOF printed per row"
+ },
+ "XFO": {
+  "id": "XFO",
+  "doc": "hp",
+  "family": "3D",
+  "title": "3D - Series XFO",
+  "pages": [
+   70
+  ],
+  "notes": [
+   "X treme F inisher, O val",
+   "Designed for optimized cycle times & improved surface finishes in 5-axis finishing operations.",
+   "Features Benefits",
+   "Multi-flute configurations. • Allows for finishing & semi-finishing applications.",
+   "Progressive helix & rake angles. • Smooth, vibration free finishing.",
+   "Enhanced edge preparation. • Increased strength & cutting-edge stabilization.",
+   "ALtima Q coating. • Optimal heat & wear resistance."
+  ],
+  "pdfPages": [
+   63
+  ],
+  "cuttingData": [
+   {
+    "title": "XFO Series Recommended Cutting Data - Speeds - Inch",
+    "page": 158,
+    "pdfPage": 151,
+    "groups": []
+   },
+   {
+    "title": "XFO Series Recommended Cutting Data - Speeds - Metric",
+    "page": 159,
+    "pdfPage": 152,
+    "groups": []
+   }
+  ],
+  "line": "TuffCut 3D",
+  "nof": "table",
+  "corners": [
+   "oval"
+  ],
+  "helix": "variable",
+  "features": [],
+  "toc": "HP PDF p6: Multi, Oval; NOF printed per row"
+ },
+ "XFO-AL": {
+  "id": "XFO-AL",
+  "doc": "hp",
+  "family": "3D",
+  "title": "3D - Series XFO-AL",
+  "pages": [
+   71
+  ],
+  "notes": [
+   "X treme F inisher, O val - AL uminum",
+   "Designed for optimized cycle times & improved surface finishes in 5-axis finishing operations.",
+   "Features Benefits",
+   "Enhanced notch design. • Allows for milling capabilities with full cutting-edge, including nose radius.",
+   "Progressive helix & rake angles. • Smooth, vibration free finishing.",
+   "High shear action. • Optimal performance in aluminum alloys.",
+   "Fordlube coating. • Increased wear resistance & lubricity."
+  ],
+  "pdfPages": [
+   64
+  ],
+  "cuttingData": [
+   {
+    "title": "XFO-AL Series Recommended Cutting Data - Speeds - Inch",
+    "page": 160,
+    "pdfPage": 153,
+    "groups": []
+   },
+   {
+    "title": "XFO-AL Series Recommended Cutting Data - Speeds - Metric",
+    "page": 161,
+    "pdfPage": 154,
+    "groups": []
+   }
+  ],
+  "line": "TuffCut 3D",
+  "nof": "table",
+  "corners": [
+   "oval"
+  ],
+  "helix": "variable",
+  "features": [],
+  "toc": "HP PDF p6: Multi, Oval; NOF printed per row"
+ },
+ "3MVS": {
+  "id": "3MVS",
+  "doc": "hp",
+  "family": "Micro",
+  "title": "Micro - Series 3MVS",
+  "pages": [
+   72,
+   73,
+   74,
+   75
+  ],
+  "notes": [
+   "Designed for high performance micro milling on any ferrous material,",
+   "Variable helix. • Neck relief options.",
+   "Square end and • Common shanks."
+  ],
+  "pdfPages": [
+   65,
+   66,
+   67,
+   68
+  ],
+  "nofIcon": 3,
+  "cuttingData": [
+   {
+    "title": "3MVS / 3MVR Series Recommended Cutting Data - Inch",
+    "page": 164,
+    "pdfPage": 157,
+    "groups": []
+   },
+   {
+    "title": "3MVS / 3MVR Series Recommended Cutting Data - Metric",
+    "page": 165,
+    "pdfPage": 158,
+    "groups": []
+   },
+   {
+    "title": "3MVS Series Recommended Cutting Data - Necked Tools - Inch",
+    "page": 166,
+    "pdfPage": 159,
+    "groups": []
+   },
+   {
+    "title": "3MVS Series Recommended Cutting Data - Necked Tools - Inch Continued",
+    "page": 167,
+    "pdfPage": 160,
+    "groups": []
+   },
+   {
+    "title": "3MVS Series Recommended Cutting Data - Necked Tools - Metric",
+    "page": 168,
+    "pdfPage": 161,
+    "groups": []
+   }
+  ],
+  "line": "TuffCut Micro",
+  "nof": 3,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "31°/35° variable",
+  "features": [
+   "neck relief options"
+  ],
+  "toc": "HP PDF p6"
+ },
+ "3MVR": {
+  "id": "3MVR",
+  "doc": "hp",
+  "family": "Micro",
+  "title": "Micro - Series 3MVR",
+  "pages": [
+   76,
+   77
+  ],
+  "notes": [
+   "Designed for high performance micro milling on any ferrous material,",
+   "Variable helix. • ALtima Xtreme coated.",
+   "Regular length. • Common shanks.",
+   "Square end and"
+  ],
+  "pdfPages": [
+   69,
+   70
+  ],
+  "nofIcon": 3,
+  "cuttingData": [
+   {
+    "title": "3MVS / 3MVR Series Recommended Cutting Data - Inch",
+    "page": 164,
+    "pdfPage": 157,
+    "groups": []
+   },
+   {
+    "title": "3MVS / 3MVR Series Recommended Cutting Data - Metric",
+    "page": 165,
+    "pdfPage": 158,
+    "groups": []
+   }
+  ],
+  "line": "TuffCut Micro",
+  "nof": 3,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "31°/35° variable",
+  "features": [],
+  "toc": "HP PDF p6"
+ },
+ "135N": {
+  "id": "135N",
+  "doc": "hp",
+  "family": "AL",
+  "title": "AL - Series 135N",
+  "pages": [
+   80,
+   81,
+   82,
+   83
+  ],
+  "notes": [
+   "The geometry of M.A. Ford 135 Series solid carbide end mill allows it to be"
+  ],
+  "pdfPages": [
+   73,
+   74,
+   75,
+   76
+  ],
+  "nofIcon": 2,
+  "helixIcon": "30°",
+  "cuttingData": [
+   {
+    "title": "135 / 135N Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 169,
+    "pdfPage": 162,
+    "groups": [
+     "N"
+    ]
+   },
+   {
+    "title": "135 / 135N Series Recommended Cutting Data - Slotting - Inch",
+    "page": 170,
+    "pdfPage": 163,
+    "groups": [
+     "N"
+    ]
+   }
+  ],
+  "line": "TuffCut AL",
+  "nof": 2,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "30°",
+  "features": [
+   "neck relief"
+  ],
+  "toc": "HP PDF p6",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "N"
+   ]
+  }
+ },
+ "135B": {
+  "id": "135B",
+  "doc": "hp",
+  "family": "AL",
+  "title": "AL - Series 135B",
+  "pages": [
+   84
+  ],
+  "notes": [
+   "The geometry of M.A. Ford 135 Series solid carbide end mill allows it to be",
+   "Performs equally well across a broad range of operating speeds."
+  ],
+  "pdfPages": [
+   77
+  ],
+  "nofIcon": 2,
+  "helixIcon": "37°",
+  "cuttingData": [
+   {
+    "title": "135B / 138B Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 171,
+    "pdfPage": 164,
+    "groups": [
+     "N"
+    ]
+   },
+   {
+    "title": "135B / 138B Series Recommended Cutting Data - Slotting - Inch",
+    "page": 172,
+    "pdfPage": 165,
+    "groups": [
+     "N"
+    ]
+   }
+  ],
+  "line": "TuffCut AL",
+  "nof": 2,
+  "corners": [
+   "ball"
+  ],
+  "helix": "37°",
+  "features": [],
+  "toc": "HP PDF p6",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "N"
+   ]
+  }
+ },
+ "138N": {
+  "id": "138N",
+  "doc": "hp",
+  "family": "X-AL",
+  "title": "X-AL - Series 138N",
+  "pages": [
+   94,
+   95,
+   96
+  ],
+  "notes": [],
+  "pdfPages": [
+   87,
+   88,
+   89
+  ],
+  "nofIcon": 3,
+  "helixIcon": "36°",
+  "cuttingData": [
+   {
+    "title": "136 / 138 / 138N / 138CE Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 173,
+    "pdfPage": 166,
+    "groups": [
+     "N"
+    ]
+   },
+   {
+    "title": "136 / 138 / 138N / 138CE Series Recommended Cutting Data - Slotting - Inch",
+    "page": 174,
+    "pdfPage": 167,
+    "groups": [
+     "N"
+    ]
+   }
+  ],
+  "line": "TuffCut X-AL",
+  "nof": 3,
+  "corners": [
+   "square",
+   "corner radius"
+  ],
+  "helix": "36°",
+  "features": [
+   "neck relief"
+  ],
+  "toc": "HP PDF p6",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "N"
+   ]
+  }
+ },
+ "138CE": {
+  "id": "138CE",
+  "doc": "hp",
+  "family": "X-AL",
+  "title": "X-AL - Series 138CE",
+  "pages": [
+   97,
+   98
+  ],
+  "notes": [
+   "CORNER RADIUS OPTIONS AVAILABLE.",
+   "CONTACT CUSTOMER SERVICE FOR PRICING."
+  ],
+  "pdfPages": [
+   90,
+   91
+  ],
+  "nofIcon": 3,
+  "helixIcon": "36°",
+  "cuttingData": [
+   {
+    "title": "136 / 138 / 138N / 138CE Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 173,
+    "pdfPage": 166,
+    "groups": [
+     "N"
+    ]
+   },
+   {
+    "title": "136 / 138 / 138N / 138CE Series Recommended Cutting Data - Slotting - Inch",
+    "page": 174,
+    "pdfPage": 167,
+    "groups": [
+     "N"
+    ]
+   }
+  ],
+  "line": "TuffCut X-AL",
+  "nof": 3,
+  "corners": [
+   "square"
+  ],
+  "helix": "36°",
+  "features": [],
+  "toc": "HP PDF p6",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "N"
+   ]
+  }
+ },
+ "138B": {
+  "id": "138B",
+  "doc": "hp",
+  "family": "X-AL",
+  "title": "X-AL - Series 138B",
+  "pages": [
+   99
+  ],
+  "notes": [
+   "Designed for extreme productivity."
+  ],
+  "pdfPages": [
+   92
+  ],
+  "nofIcon": 3,
+  "helixIcon": "36°",
+  "cuttingData": [
+   {
+    "title": "135B / 138B Series Recommended Cutting Data - Profile Milling - Inch",
+    "page": 171,
+    "pdfPage": 164,
+    "groups": [
+     "N"
+    ]
+   },
+   {
+    "title": "135B / 138B Series Recommended Cutting Data - Slotting - Inch",
+    "page": 172,
+    "pdfPage": 165,
+    "groups": [
+     "N"
+    ]
+   }
+  ],
+  "line": "TuffCut X-AL",
+  "nof": 3,
+  "corners": [
+   "ball"
+  ],
+  "helix": "36°",
+  "features": [],
+  "toc": "HP PDF p6",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "N"
+   ]
+  }
+ },
+ "FHFP": {
+  "id": "FHFP",
+  "doc": "hp",
+  "family": "HF",
+  "title": "HF - Series FHFP",
+  "pages": [
+   111,
+   112
+  ],
+  "notes": [
+   "M.A. F ord H igh- F eed, P ositive",
+   "High-feed roughing in 3D shapes, long reach applications, & difficult materials."
+  ],
+  "pdfPages": [
+   104,
+   105
+  ],
+  "helixIcon": "20°",
+  "cuttingData": [
+   {
+    "title": "FHFP Series Recommended Cutting Data - Inch Series FHFP - 3xD - Inch",
+    "page": 113,
+    "pdfPage": 106,
+    "groups": [
+     "H",
+     "M",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "FHFP Series Recommended Cutting Data - Metric Series FHFP - 3xD - Metric",
+    "page": 114,
+    "pdfPage": 107,
+    "groups": [
+     "H",
+     "M",
+     "P",
+     "S"
+    ]
+   }
+  ],
+  "line": "TuffCut HF",
+  "nof": "table",
+  "corners": [
+   "corner radius"
+  ],
+  "helix": "20°",
+  "features": [
+   "high feed",
+   "neck relief"
+  ],
+  "toc": "HP PDF p6: NOF 4/5; NOF printed per row",
+  "cornerNote": "CAM-RE is the radius to program in CAM, as printed",
+  "materials": {
+   "scope": "series",
+   "groups": [
+    "H",
+    "M",
+    "P",
+    "S"
+   ]
+  }
+ }
+}

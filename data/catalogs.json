@@ -1,0 +1,314 @@
+{
+ "edition": "M.A. Ford Product Catalog Vol. 105",
+ "extracted": "2026-10-14",
+ "documents": {
+  "gp": {
+   "title": "M.A. FORDMAX GP End Mill Section, Product Catalog Vol. 105",
+   "file": "fordmax-gp-endmills-vol105.pdf",
+   "url": "https://www.maford.com/SiteContent/Documents//2024_catalog//FORDMAX%20GP%20Endmills%20vol105interactive.pdf",
+   "bytes": 23748993,
+   "pages": 98,
+   "lastModified": "2025-09-16"
+  },
+  "hp": {
+   "title": "M.A. FORD APG HP End Mill Section, Product Catalog Vol. 105",
+   "file": "apg-hp-endmills-vol105.pdf",
+   "url": "https://www.maford.com/SiteContent/Documents//2024_catalog//MA%20FORD%20APG%20HP%20Endmills%20vol105interactive.pdf",
+   "bytes": 47887486,
+   "pages": 195,
+   "lastModified": "2025-09-16"
+  },
+  "master": {
+   "title": "M.A. Ford US Product Catalog 2024, Vol. 105 (complete)",
+   "url": "https://www.maford.com/SiteContent/Documents//2024_catalog//MA%20Ford%20US%20Product%20Catalog%202024%20vol105interactive_5.28.26v2.pdf",
+   "bytes": 168849308,
+   "lastModified": "2026-05-28"
+  }
+ },
+ "iso": {
+  "P": "Steel",
+  "M": "Stainless steel",
+  "K": "Cast iron",
+  "N": "Non-ferrous",
+  "S": "High-temp alloys & titanium",
+  "H": "Hardened steel"
+ },
+ "general": {
+  "general-purpose": [
+   {
+    "title": "General Purpose End Mill Recommended Cutting Data - Profile Milling",
+    "page": 242,
+    "pdfPage": 65,
+    "doc": "gp",
+    "groups": [
+     "H",
+     "M",
+     "P"
+    ]
+   },
+   {
+    "title": "General Purpose End Mill Recommended Cutting Data - Profile Milling",
+    "page": 243,
+    "pdfPage": 66,
+    "doc": "gp",
+    "groups": [
+     "K",
+     "N",
+     "S"
+    ]
+   },
+   {
+    "title": "General Purpose End Mill Recommended Cutting Data - Profile Milling",
+    "page": 244,
+    "pdfPage": 67,
+    "doc": "gp",
+    "groups": [
+     "H",
+     "M",
+     "P"
+    ]
+   },
+   {
+    "title": "General Purpose End Mill Recommended Cutting Data - Profile Milling",
+    "page": 245,
+    "pdfPage": 68,
+    "doc": "gp",
+    "groups": [
+     "K",
+     "N",
+     "S"
+    ]
+   },
+   {
+    "title": "General Purpose End Mill Recommended Cutting Data - Slotting",
+    "page": 246,
+    "pdfPage": 69,
+    "doc": "gp",
+    "groups": [
+     "H",
+     "M",
+     "P"
+    ]
+   },
+   {
+    "title": "General Purpose End Mill Recommended Cutting Data - Slotting",
+    "page": 247,
+    "pdfPage": 70,
+    "doc": "gp",
+    "groups": [
+     "K",
+     "N",
+     "S"
+    ]
+   },
+   {
+    "title": "General Purpose End Mill Recommended Cutting Data - Slotting",
+    "page": 248,
+    "pdfPage": 71,
+    "doc": "gp",
+    "groups": [
+     "H",
+     "M",
+     "P"
+    ]
+   },
+   {
+    "title": "General Purpose End Mill Recommended Cutting Data - Slotting",
+    "page": 249,
+    "pdfPage": 72,
+    "doc": "gp",
+    "groups": [
+     "K",
+     "N",
+     "S"
+    ]
+   }
+  ],
+  "micro": [
+   {
+    "title": "Micro End Mill Recommended Cutting Data - Profile Milling",
+    "page": 251,
+    "pdfPage": 74,
+    "doc": "gp",
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "N",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "Micro End Mill Recommended Cutting Data - Profile Milling",
+    "page": 252,
+    "pdfPage": 75,
+    "doc": "gp",
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "N",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "Micro End Mill Recommended Cutting Data - Profile Milling",
+    "page": 253,
+    "pdfPage": 76,
+    "doc": "gp",
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "N",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "Micro End Mill Recommended Cutting Data - Profile Milling",
+    "page": 254,
+    "pdfPage": 77,
+    "doc": "gp",
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "N",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "Micro End Mill Recommended Cutting Data - Slotting",
+    "page": 255,
+    "pdfPage": 78,
+    "doc": "gp",
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "N",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "Micro End Mill Recommended Cutting Data - Slotting",
+    "page": 256,
+    "pdfPage": 79,
+    "doc": "gp",
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "N",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "Micro End Mill Recommended Cutting Data - Slotting",
+    "page": 257,
+    "pdfPage": 80,
+    "doc": "gp",
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "N",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "Micro End Mill Recommended Cutting Data - Slotting",
+    "page": 258,
+    "pdfPage": 81,
+    "doc": "gp",
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "N",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "Micro End Mill Recommended Cutting Data - Slotting",
+    "page": 259,
+    "pdfPage": 82,
+    "doc": "gp",
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "N",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "Micro End Mill Recommended Cutting Data - Slotting",
+    "page": 260,
+    "pdfPage": 83,
+    "doc": "gp",
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "N",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "Micro End Mill Recommended Cutting Data - Slotting",
+    "page": 261,
+    "pdfPage": 84,
+    "doc": "gp",
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "N",
+     "P",
+     "S"
+    ]
+   },
+   {
+    "title": "Micro End Mill Recommended Cutting Data - Slotting",
+    "page": 262,
+    "pdfPage": 85,
+    "doc": "gp",
+    "groups": [
+     "H",
+     "K",
+     "M",
+     "N",
+     "P",
+     "S"
+    ]
+   }
+  ]
+ },
+ "coverage": {
+  "loaded": [
+   "FORDMAX GP end mills (Vol. 105 section)",
+   "APG HP end mills (Vol. 105 section)"
+  ],
+  "notLoaded": [
+   "Drills, reamers, taps, thread mills, routers, burs, countersinks and every other section of the master catalog",
+   "Product sets (e.g. Series 277 sets)"
+  ],
+  "products": 4949,
+  "series": 55,
+  "byDoc": {
+   "gp": 1646,
+   "hp": 3303
+  }
+ }
+}

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Independent prototype: find M.A. Ford end mills from the Vol. 105 catalog and load them into a milling calculator.">
+<meta name="theme-color" content="#14202b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SAM Tooling">
+<title>SAM Tooling Demo</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="#/find" aria-label="SAM tooling demo, home">
+    <span class="mark" aria-hidden="true"></span>
+    <span class="brand-text"><b>SAM</b> <span>M.A. Ford tooling demo</span></span>
+  </a>
+  <span id="net" class="net" hidden>Offline</span>
+  <button class="proto" id="proto-btn" type="button">Independent prototype</button>
+</header>
+
+<main id="view" tabindex="-1"></main>
+
+<nav class="tabs" aria-label="Sections">
+  <a href="#/find" data-tab="find"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg><span>Find Tools</span></a>
+  <a href="#/calc" data-tab="calc"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11h0M8 15h2M12 15h2M8 18h2M12 18h2M16 15v3"/></svg><span>Calculator</span></a>
+  <a href="#/saved" data-tab="saved"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg><span>Saved</span></a>
+  <a href="#/catalogs" data-tab="catalogs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5c3-1.5 5.5-1.5 8 0v15c-2.5-1.5-5-1.5-8 0zM20 5c-3-1.5-5.5-1.5-8 0v15c2.5-1.5 5-1.5 8 0z"/></svg><span>Catalogs</span></a>
+</nav>
+
+<dialog id="about">
+  <form method="dialog">
+    <h2>Independent prototype</h2>
+    <p>This demo was built for discussion. It is <b>not an M.A. Ford product</b> and is not endorsed by or affiliated with M.A. Ford Mfg. Co. Product names and data belong to their owners.</p>
+    <p>Tool data was read from the public M.A. Ford Product Catalog Vol. 105 end-mill sections. Always confirm against the catalog before ordering or machining.</p>
+    <p>The calculator uses standard formulas with values you enter. It does not reproduce M.A. Ford's cutting-data recommendations or HSM engine.</p>
+    <button class="btn primary" value="close">Close</button>
+  </form>
+</dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
