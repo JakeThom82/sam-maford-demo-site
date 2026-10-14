@@ -432,7 +432,12 @@ async function renderCatalogs() {
     <p>Independent prototype for discussion. Not an M.A. Ford product, and not endorsed by M.A. Ford. M.A. Ford's own calculator app: <a class="ext" href="https://apps.apple.com/us/app/m-a-ford-machining-calculator/id1554634640" target="_blank" rel="noopener">App Store</a>.</p>
   </div>`;
   $('#install')?.addEventListener('click', async () => { installPrompt.prompt(); await installPrompt.userChoice.catch(() => {}); installPrompt = null; renderCatalogs(); });
-  const st = await offlineStatus();
+  let st = await offlineStatus();
+  // On a first visit the service worker may still be saving files: check again once it is ready.
+  if (!st.reason && !(st.app && st.data) && navigator.serviceWorker) {
+    await Promise.race([navigator.serviceWorker.ready, new Promise(r => setTimeout(r, 8000))]);
+    st = await offlineStatus();
+  }
   const el = $('#offline'); if (!el) return;
   el.innerHTML = st.reason ? `<p class="note warn">${esc(st.reason)}</p>` : `<ul>
     <li>${st.app ? '✓' : '…'} App screens ${st.app ? 'saved for offline use' : 'not saved yet (reload once while online)'}</li>
