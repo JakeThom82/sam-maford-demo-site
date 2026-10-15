@@ -191,3 +191,19 @@ dialog.sheet { margin: auto auto 0; width: 100%; max-width: 560px; max-height: 8
 .mf-icons img { width: 28px; height: 28px; }
 .mf-apps { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 84px)); gap: 8px; margin: 6px 0 10px; }
 .mf-apps figure { margin: 0; } .mf-apps img { width: 100%; border-radius: 8px; background: #fff; } .mf-apps figcaption { font-size: .78rem; text-align: center; }
+
+/* interactive cut */
+.engage { margin: 8px 0 0; }
+.engage svg { width: 100%; max-width: 460px; height: auto; display: block; margin: 0 auto; touch-action: none; cursor: grab; border-radius: 10px; background: var(--surface-2); }
+.engage svg.dragging { cursor: grabbing; }
+.engage svg:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent); }
+.engage figcaption { font-size: .86rem; text-align: center; margin-top: 4px; }
+.engage .bad, .xd.bad { color: var(--bad); font-weight: 700; } .engage .good { color: var(--ok); font-weight: 600; }
+.eng-lim { stroke: var(--accent); stroke-dasharray: 4 3; stroke-width: 1.2; }
+.eng-lt { font-size: 10px; fill: var(--muted); }
+.eng-hint { text-align: center; margin: 2px 0 0; }
+.card-inset { background: var(--surface-2); border-radius: 12px; padding: 10px 12px; margin: 10px 0; }
+.card-inset h3 { font-size: .95rem; }
+.pubt th, .pubt td { font-size: .82rem; padding: .35rem .25rem; width: auto; }
+.answer { border: 2px solid var(--accent); }
+.pubt td { white-space: normal; } .pubt td:nth-child(2) { white-space: nowrap; }

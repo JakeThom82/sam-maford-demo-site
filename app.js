@@ -5,6 +5,7 @@ import { compute, convert, fmt } from './lib/calc.js';
 import * as setups from './lib/setups.js';
 import { MATERIALS, OPERATIONS, ENGAGEMENT_PRESETS, ISO_COLORS, ISO_NAMES, materialById } from './lib/materials.js';
 import { guide } from './lib/guide.js';
+import { published } from './lib/published.js';
 
 const view = document.getElementById('view');
 const $ = (sel, el = document) => el.querySelector(sel);
@@ -12,7 +13,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 const store = (() => { try { const k = '__t'; localStorage.setItem(k, k); localStorage.removeItem(k); return localStorage; } catch { const m = new Map(); return { getItem: k => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)), removeItem: k => m.delete(k) }; } })();
 const persistent = store !== null && (() => { try { return !!window.localStorage; } catch { return false; } })();
 
-let DATA = null, BY_ID = new Map(), SERIES_IDS = [], WEB = null;
+let DATA = null, BY_ID = new Map(), SERIES_IDS = [], WEB = null, SF = {};
 // Official M.A. Ford images are linked from maford.com (not copied); the server's resizer gives thumbnails.
 const MF = 'https://www.maford.com';
 const mfImg = (path, w) => w ? `${MF}/ScaleImage2.aspx?w=${w}&img=~${encodeURI(path)}` : MF + encodeURI(path);
@@ -90,6 +91,39 @@ function facetCounts(c, key) {
   return m;
 }
 
+// A direct answer when the request names one tool, or asks for speeds and feeds of a few tools:
+// the tool itself and M.A. Ford's published speeds and feeds for the material asked about.
+// Feeds as the sheet prints them: .0040, not 0.004.
+const fzPrinted = v => v < 1 ? v.toFixed(4).replace(/^0/, '') : String(v);
+function answerCard(results, c) {
+  if (!(results.length === 1 || (c.wantSpeeds && results.length > 0 && results.length <= 3))) return '';
+  return results.slice(0, 3).map(p => {
+    const s = DATA.series[p.series] || {}, ws = webSeries(p.series);
+    const matId = c.materialId || null, mat = materialById(matId);
+    const iso = c.material || mat?.iso || null;
+    const pub = published({ series: p.series, dc: p.dc, apmx: p.apmx, iso, materialId: matId }, SF);
+    const isoName = iso ? ISO_NAMES[iso].toLowerCase() : null;
+    let sf = '';
+    if (pub?.rows?.length) {
+      sf = `<table class="dims pubt"><thead><tr><th>Operation</th><th>ae / ap</th><th>Vc (${pub.unit === 'mm' ? 'm/min' : 'SFM'})</th><th>fz at ${esc(pub.column)}"</th></tr></thead><tbody>
+        ${pub.rows.map(r => `<tr><td>${esc(r.application)}<br><small class="muted">${esc(r.material)}</small></td><td>${esc(r.ae)}<br>${esc(r.ap)}</td><td>${esc(r.vc)}</td><td>${fzPrinted(r.fzAtD)}</td></tr>`).join('')}</tbody></table>
+        <p class="muted small">M.A. Ford's Speed and Feed Data for Series ${esc(p.series)}, page ${pub.page}${pub.locXD ? ` (${pub.locXD}×D cutting-length table)` : ''}. Advisory, as M.A. Ford notes. <a class="ext" href="${esc(pub.pdf)}" target="_blank" rel="noopener">Open the PDF</a></p>`;
+    } else if (c.wantSpeeds || iso) {
+      const pdf = ws?.speedFeedPdf, pages = (s.cuttingData || []).map(x => x.page);
+      sf = `<p class="small">${pub?.rows && iso ? `M.A. Ford's data sheet for Series ${esc(p.series)} has no row for ${esc(isoName)}.` : pub?.noColumn ? `M.A. Ford's data sheet covers ${esc(pub.diameters.join(', '))}, not this size.` : `Speeds and feeds for Series ${esc(p.series)} are published by M.A. Ford${pdf || pages.length ? '' : ' (no sheet found on the website)'}; this demo has not read that sheet yet.`}
+        ${pdf ? `<a class="ext" href="${esc(pdf)}" target="_blank" rel="noopener">Speed and Feed Data (PDF)</a>` : ''}${pages.length && p.doc !== 'web' ? ` · catalog pages ${pages.join(', ')}` : ''}</p>`;
+    }
+    const calcLink = `#/calc?tool=${encodeURIComponent(p.id)}${matId ? `&mat=${matId}` : ''}`;
+    return `<div class="card answer">
+      <div class="row" style="flex-wrap:nowrap">${ws?.photo ? `<img class="thumb" src="${esc(mfImg(ws.photo, 200))}" alt="" onerror="this.remove()" style="width:96px;height:48px;object-fit:contain;background:#fff;border-radius:8px">` : ''}
+        <div class="grow"><b class="mono">${esc(p.tool)}</b> <small class="muted">EDP ${esc(p.edp)}</small><br><small>${esc(dia(p))} · ${esc(specLine(p))}</small></div></div>
+      ${sf}
+      <div class="list-actions"><a class="btn primary small" href="${calcLink}">Open in calculator${mat ? ` · ${esc(mat.name.toLowerCase())}` : ''}</a><a class="btn small" href="#/tool/${encodeURIComponent(p.id)}">Tool details</a></div>
+      ${c.wantSpeeds && iso && !matId ? `<p class="muted small">Pick the exact material in the calculator.</p>` : ''}
+    </div>`;
+  }).join('');
+}
+
 function matSource(id, iso) {
   const s = DATA.series[id] || {}; const cat = s.materials?.groups.includes(iso), web = s.webIso?.includes(iso);
   return [cat && (s.materials.scope === 'series' ? 'series table' : 'general GP table'), web && 'maford.com'].filter(Boolean).join(' + ');
@@ -119,6 +153,7 @@ function renderFind(params) {
     <input id="q" type="search" enterkeyhint="search" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Describe a tool" placeholder="Describe a tool: 1/2 4 flute ball, 12mm, 27712500B" value="${esc(find.q)}">
   </div>
   ${find.q ? `<p class="read">${parsed.read.length ? `<b>Read as:</b> ${parsed.read.map(esc).join(' · ')}` : ''}${parsed.unused.length ? `${parsed.read.length ? '<br>' : ''}<b>Not used:</b> ${parsed.unused.map(esc).join(', ')} <small>(words the search does not understand are ignored)</small>` : ''}</p>` : `<div class="chips" style="margin-top:10px" aria-label="Example searches">${EXAMPLES.map(e => `<button type="button" class="chip" data-example="${esc(e)}">${esc(e)}</button>`).join('')}</div>`}
+  ${answerCard(results, c)}
   <details class="card filters" style="margin-top:12px" ${find.open ? 'open' : ''}>
     <summary>Filters ${anyFilter ? `<span class="tag ok">${results.length.toLocaleString()} match</span>` : ''}</summary>
     <div class="grid2 fgroup">
@@ -236,7 +271,10 @@ function renderTool(id) {
         ${s.notes?.length ? `<h3>From the series page</h3><ul>${s.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}
         ${s.features?.length ? `<p><span class="muted">Features:</span> ${s.features.map(esc).join(', ')}</p>` : ''}
       </div>
-      <div class="card"><h2>Source</h2>
+      ${p.doc === 'web' ? `<div class="card"><h2>Source</h2>
+        <p>This series is on M.A. Ford's website but not in the Vol. 105 catalog sections loaded here. Sizes come from the website's tool table (read ${esc(WEB.checked || '')}).</p>
+        <div class="list-actions"><a class="ext btn small" href="${esc(mfPage)}" target="_blank" rel="noopener">View this tool on maford.com</a></div>
+      </div>` : `<div class="card"><h2>Source</h2>
         <dl class="kv">
           <dt>Document</dt><dd>${esc(doc.title)}</dd>
           <dt>Printed page</dt><dd>${esc(p.page)}</dd>
@@ -244,7 +282,7 @@ function renderTool(id) {
         </dl>
         <div class="list-actions">${catalogLink(p.doc, p.pdfPage, `Open catalog page ${p.page}`)}</div>
         <p class="muted" style="font-size:.82rem">Opens M.A. Ford's PDF (${(doc.bytes / 1e6).toFixed(0)} MB) on maford.com. Some phone viewers open it at the first page; go to PDF page ${esc(p.pdfPage)}.</p>
-      </div>
+      </div>`}
     </div>
   </div>`;
 }
@@ -284,6 +322,7 @@ function currentTool() {
 }
 
 function renderCalc(params) {
+  if (params?.get('mat') && materialById(params.get('mat'))) { calc.material = params.get('mat'); saveCalc(); }
   if (params?.get('tool')) { const p = BY_ID.get(params.get('tool')); if (p) { if (p.sys === 'mm' && calc.units !== 'mm') calc = { ...convert(calc, 'mm'), maxRpm: calc.maxRpm, material: calc.material, op: calc.op, examples: {} }; loadTool(p); saveCalc(); toast(`${p.tool} loaded`); } history.replaceState(null, '', '#/calc'); }
   if (params?.get('s')) {
     const got = setups.decode(params.get('s'));
@@ -305,6 +344,9 @@ function renderCalc(params) {
   const photo = tool && webSeries(tool.series)?.photo;
   const matches = calc.d > 0 ? guide({ iso: mat?.iso, op: op?.web, dc: u === 'mm' ? calc.d / MM_PER_IN : calc.d }, DATA.products, DATA.series, WEB) : [];
   const cutPages = (s?.cuttingData || []).map(c => c.page);
+  const dcIn = u === 'mm' ? calc.d / MM_PER_IN : calc.d;
+  const pub = tool ? published({ series: tool.series, dc: tool.dc, apmx: tool.apmx, iso: mat?.iso, materialId: mat?.id, op: calc.op }, SF) : null;
+  const sfPdf = tool && webSeries(tool.series)?.speedFeedPdf;
 
   view.innerHTML = `
   <h1 class="sr">Calculator</h1>
@@ -329,13 +371,14 @@ function renderCalc(params) {
       <div class="field"><label for="c-${calc.feedFrom === 'vf' ? 'vf' : 'fz'}">${calc.feedFrom === 'vf' ? `Vf (${U.vf})` : `fz (${U.fz})`} ${exFlag('fz')} <button type="button" class="linkish" data-mode="feedFrom" data-v="${calc.feedFrom === 'vf' ? 'fz' : 'vf'}">use ${calc.feedFrom === 'vf' ? 'fz' : U.vf}</button></label>${calc.feedFrom === 'vf' ? input('vf', 'your value') : input('fz', 'your value')}</div>
     </div>
     <div class="grid2">
-      <div class="field"><label for="c-ae">ae (${U.len}) ${xD(calc.ae, calc.d)}</label>${input('ae', 'radial width')}</div>
-      <div class="field"><label for="c-ap">ap (${U.len}) ${xD(calc.ap, T.apmx)}</label>${input('ap', 'axial depth')}</div>
+      <div class="field"><label for="c-ae">ae (${U.len}) <span id="xd-ae">${xD(calc.ae, calc.d)}</span></label>${input('ae', 'radial width')}</div>
+      <div class="field"><label for="c-ap">ap (${U.len}) <span id="xd-ap">${xD(calc.ap, T.apmx)}</span></label>${input('ap', 'axial depth')}</div>
     </div>
     <div class="list-actions"><button type="button" class="btn small" id="c-presets">Engagement presets</button><button type="button" class="btn small" id="c-example">Fill example values</button><button type="button" class="btn small" id="c-reset">Clear</button></div>
-    ${engagementSvg(calc, T)}
-    ${tool && cutPages.length ? `<p class="muted small">M.A. Ford publishes starting speeds and feeds for Series ${esc(tool.series)} on catalog pages ${cutPages.join(', ')}${mat ? ` (look for ${esc(mat.name.toLowerCase())})` : ''}. ${catalogLink(tool.doc, s.cuttingData[0].pdfPage, 'Open page ' + cutPages[0])}</p>` : ''}
-    <p class="muted small">Vc and fz are yours to enter: this demo does not reproduce M.A. Ford's recommendations. Example values only show the maths.</p>
+    ${engageHtml()}
+    ${publishedCard(pub, tool, mat, sfPdf)}
+    ${tool && cutPages.length && !pub?.rows?.length ? `<p class="muted small">M.A. Ford publishes starting speeds and feeds for Series ${esc(tool.series)} on catalog pages ${cutPages.join(', ')}${mat ? ` (look for ${esc(mat.name.toLowerCase())})` : ''}. ${catalogLink(tool.doc, s.cuttingData[0].pdfPage, 'Open page ' + cutPages[0])}</p>` : ''}
+    <p class="muted small">${pub?.rows?.length ? 'Vc and fz are yours to set: use M.A. Ford\'s published values above, or your own.' : 'Vc and fz are yours to enter. M.A. Ford\'s published values appear here when their data sheet for this series has been read.'} Example values only show the maths.</p>
   </div>
 
   ${r.errors.length ? `<div class="note err"><ul>${r.errors.map(e => `<li>${esc(e)}</li>`).join('')}</ul></div>` : ''}
@@ -361,12 +404,9 @@ function renderCalc(params) {
   </div>
   <p class="muted small">Standard formulas on the values entered. A result does not mean the setup suits the tool, material, holder or machine.</p>
 
-  <div class="resultbar" aria-live="polite">
-    <div><span>RPM${r.limited ? ' (max)' : ''}</span><b>${fmt(r.n, 0)}</b></div>
-    <div><span>Vf (${U.vf})</span><b>${fmt(r.vf, u === 'mm' ? 0 : 2)}</b></div>
-    <div><span>Q (${U.mrr})</span><b>${fmt(r.mrr, 2)}</b></div>
-    ${r.limited ? `<div class="rb-note">${fmt(r.vc, u === 'mm' ? 1 : 0)} ${U.vc} at max RPM</div>` : calc.speedFrom === 'n' && r.vc != null ? `<div class="rb-note">${fmt(r.vc, u === 'mm' ? 1 : 0)} ${U.vc}</div>` : calc.feedFrom === 'vf' && r.fz != null ? `<div class="rb-note">fz ${fmt(r.fz, 5)}</div>` : ''}
-  </div>`;
+  <div class="resultbar" id="resultbar" aria-live="polite">${resultbarInner(r)}</div>`;
+  bindEngage(T, pub);
+  bindPublished(pub, T);
 
   // Tool sheet / material sheet / presets
   $('#c-tool').addEventListener('click', openToolSheet);
@@ -431,25 +471,150 @@ function bindNumberInputs(root, rerender) {
   }));
 }
 
-// Schematic of the cut, like the engagement picture in M.A. Ford's app: a block with the tool's
-// axial (ap) and radial (ae) engagement. Green when ap is within the flute length and ae within D.
-function engagementSvg(c, T) {
-  if (!(c.d > 0)) return '';
-  const D = c.d, ap = c.ap > 0 ? c.ap : null, ae = c.ae > 0 ? c.ae : null, loc = T.apmx > 0 ? T.apmx : null;
-  const bad = (ap && loc && ap > loc + 1e-9) || (ae && ae > D + 1e-9);
-  const H = 120, s = H / Math.max(loc || D * 2, ap || 0, D * 1.5);
-  const tw = Math.max(18, Math.min(70, D * s)), flute = (loc || D * 2) * s;
-  const apH = ap ? Math.min(ap * s, H) : 0, aeW = ae ? Math.min(ae / D, 1) * tw : 0;
-  const x0 = 150, top = 22 + (H - flute);
-  const col = bad ? 'var(--bad)' : 'var(--good)';
-  return `<figure class="engage"><svg viewBox="0 0 320 170" role="img" aria-label="Engagement: ae ${ae ? fmt(ae / D, 2) + ' × D' : 'not set'}, ap ${ap ? fmt(ap / D, 2) + ' × D' : 'not set'}">
-    <rect x="40" y="${22 + H - apH}" width="${x0 - 40 + aeW}" height="${apH}" fill="var(--block)" stroke="var(--line)"/>
-    <rect x="40" y="${22 + H}" width="240" height="20" fill="var(--block)" stroke="var(--line)"/>
-    <rect x="${x0}" y="12" width="${tw}" height="${top - 12}" fill="var(--shank)"/>
-    <rect x="${x0}" y="${top}" width="${tw}" height="${flute}" fill="var(--flute)"/>
-    ${ap && ae ? `<rect x="${x0}" y="${22 + H - apH}" width="${aeW}" height="${apH}" fill="${col}" opacity=".85"/>` : ''}
-    ${loc ? `<line x1="${x0 + tw + 6}" y1="${top}" x2="${x0 + tw + 6}" y2="${top + flute}" stroke="var(--muted)"/><text x="${x0 + tw + 10}" y="${top + flute / 2 + 4}" font-size="11" fill="var(--muted)">flute length</text>` : ''}
-  </svg><figcaption>${ap && ae ? (bad ? 'Outside the tool: check ae and ap.' : `ae ${fmt(ae / D, 2)} × D, ap ${fmt(ap / D, 2)} × D`) : 'Enter ae and ap to see the cut.'} <span class="muted">Schematic, not to scale for the tool's shape.</span></figcaption></figure>`;
+// ---------- interactive cut (drag the cutter, like M.A. Ford's app) ----------
+// Front view of the cut: the workpiece block and the cutter at its right-hand wall. Dragging the
+// cutter sideways sets the radial width ae, up and down sets the axial depth ap. The engaged area is
+// green while ap is within the flute length and ae within the diameter (and within M.A. Ford's
+// published limits for the chosen operation, when there are any); red when the cutter is pushed past.
+let ENG = null; // geometry and limits for the current render
+
+function resultbarInner(r) {
+  const u = calc.units, U = UNITS[u];
+  return `<div><span>RPM${r.limited ? ' (max)' : ''}</span><b>${fmt(r.n, 0)}</b></div>
+    <div><span>Vf (${U.vf})</span><b>${fmt(r.vf, u === 'mm' ? 0 : 2)}</b></div>
+    <div><span>Q (${U.mrr})</span><b>${fmt(r.mrr, 2)}</b></div>
+    ${r.limited ? `<div class="rb-note">${fmt(r.vc, u === 'mm' ? 1 : 0)} ${U.vc} at max RPM</div>` : calc.speedFrom === 'n' && r.vc != null ? `<div class="rb-note">${fmt(r.vc, u === 'mm' ? 1 : 0)} ${U.vc}</div>` : calc.feedFrom === 'vf' && r.fz != null ? `<div class="rb-note">fz ${fmt(r.fz, 5)}</div>` : ''}`;
+}
+
+function engageHtml() {
+  if (!(calc.d > 0)) return '<p class="muted small engage-empty">Set a tool diameter to see the cut and drag the cutter.</p>';
+  return `<figure class="engage" id="engage">
+    <svg id="eng-svg" viewBox="0 0 340 236" role="slider" tabindex="0" aria-label="Cutter position: drag sideways for ae, up and down for ap. Arrow keys also move it."></svg>
+    <figcaption id="eng-cap"></figcaption>
+    <p class="muted small eng-hint">Drag the cutter: sideways for radial width ae, up and down for depth ap.</p>
+  </figure>`;
+}
+
+function engageLimits(T, pub) {
+  const D = calc.d, loc = T.apmx > 0 ? T.apmx : null;
+  const row = pub?.opMatched && pub.rows.length === 1 ? pub.rows[0] : null; // a single published row for this job
+  return {
+    D, loc,
+    aeHard: D, apHard: loc,
+    aePub: row?.aeLim ? row.aeLim.max * D : null, apPub: row?.apLim ? row.apLim.max * D : null,
+    pubLabel: row ? `${row.application} (M.A. Ford: ae ${row.ae}, ap ${row.ap})` : null,
+  };
+}
+
+function drawEngage() {
+  const svg = document.getElementById('eng-svg'); if (!svg || !ENG) return;
+  const { D, loc, s, top, xr, H } = ENG;
+  const ae = Math.max(0, calc.ae || 0), ap = Math.max(0, calc.ap || 0);
+  const tw = D * s, toolL = xr - ae * s, bottom = top + ap * s, fluteTop = bottom - (loc || D * 2) * s;
+  const L = ENG.lim;
+  const overHard = (L.apHard && ap > L.apHard + 1e-9) || ae > L.aeHard + 1e-9;
+  const overPub = (L.aePub && ae > L.aePub + 1e-9) || (L.apPub && ap > L.apPub + 1e-9);
+  const bad = overHard || overPub;
+  const engW = Math.min(ae, D) * s;
+  const blockBottom = top + H * s;
+  svg.innerHTML = `
+    <defs><linearGradient id="flg" x1="0" x2="1"><stop offset="0" stop-color="var(--flute)"/><stop offset=".55" stop-color="#fff3b0"/><stop offset="1" stop-color="var(--flute)"/></linearGradient>
+      <linearGradient id="shg" x1="0" x2="1"><stop offset="0" stop-color="var(--shank)"/><stop offset=".5" stop-color="#eef1f4"/><stop offset="1" stop-color="var(--shank)"/></linearGradient></defs>
+    <rect x="20" y="${top}" width="${xr - 20}" height="${blockBottom - top}" fill="var(--block)" stroke="var(--line)"/>
+    ${L.apPub ? `<line x1="20" x2="${xr + tw + 20}" y1="${top + L.apPub * s}" y2="${top + L.apPub * s}" class="eng-lim"/><text x="24" y="${top + L.apPub * s - 4}" class="eng-lt">published ap limit</text>` : ''}
+    ${L.aePub ? `<line x1="${xr - L.aePub * s}" x2="${xr - L.aePub * s}" y1="${top - 22}" y2="${blockBottom}" class="eng-lim"/>` : ''}
+    <rect x="${toolL}" y="0" width="${tw}" height="${Math.max(0, fluteTop)}" fill="url(#shg)" class="eng-tool"/>
+    <rect x="${toolL}" y="${fluteTop}" width="${tw}" height="${bottom - fluteTop}" fill="url(#flg)" class="eng-tool"/>
+    ${ae > 0 && ap > 0 ? `<rect x="${toolL}" y="${top}" width="${engW}" height="${Math.min(ap, H) * s}" fill="${bad ? 'var(--bad)' : 'var(--good)'}" opacity=".85" class="eng-tool"/>` : ''}
+    ${loc ? `<line x1="${toolL + tw + 6}" y1="${fluteTop}" x2="${toolL + tw + 6}" y2="${bottom}" stroke="var(--muted)"/><text x="${Math.min(toolL + tw + 9, 300)}" y="${(fluteTop + bottom) / 2 + 4}" class="eng-lt">flutes</text>` : ''}
+    <text x="${xr - 4}" y="${blockBottom + 16}" text-anchor="end" class="eng-lt">workpiece</text>`;
+  const cap = document.getElementById('eng-cap');
+  const xd = (v, lim) => `<b class="${lim != null && v > lim + 1e-9 ? 'bad' : ''}">${fmt(v / D, 2)} × D</b>`;
+  const unit = calc.units === 'mm' ? 'mm' : 'in';
+  cap.innerHTML = `ae ${fmt(ae, 3)} ${unit} ${xd(ae, Math.min(L.aeHard, L.aePub ?? Infinity))} · ap ${fmt(ap, 3)} ${unit} ${xd(ap, Math.min(L.apHard ?? Infinity, L.apPub ?? Infinity))}<br>
+    <span class="${bad ? 'bad' : 'good'}">${overHard ? (ap > (L.apHard ?? Infinity) ? 'Deeper than the flute length' : 'Wider than the cutter') : overPub ? `Past M.A. Ford's published limit for ${esc(L.pubLabel)}` : ae > 0 && ap > 0 ? (L.pubLabel ? `Within M.A. Ford's published limit for ${esc(L.pubLabel)}` : 'Within the tool\'s flute length and diameter') : 'Drag the cutter into the part'}</span>`;
+}
+
+function bindEngage(T, pub) {
+  const svg = document.getElementById('eng-svg'); if (!svg) return;
+  const D = calc.d, loc = T.apmx > 0 ? T.apmx : null;
+  const lim = engageLimits(T, pub);
+  // Scale: the block is a little deeper than the flutes (or the published ap limit); the cutter keeps a readable width.
+  const H = Math.max((loc || 2 * D) * 1.25, 2.2 * D, (lim.apPub || 0) * 1.1, (calc.ap || 0) * 1.05);
+  const s = Math.min(170 / H, 90 / D);
+  ENG = { D, loc, s, top: 40, xr: 200, H, lim };
+  drawEngage();
+  const step = calc.units === 'mm' ? 0.01 : 0.001;
+  const snap = v => Math.round(v / step) * step;
+  const live = () => {
+    drawEngage();
+    for (const k of ['ae', 'ap']) {
+      const el = document.getElementById('c-' + k); if (el) el.value = calc[k] ? String(+calc[k].toFixed(4)) : '';
+      const lim = k === 'ae' ? D : loc, x = document.getElementById('xd-' + k);
+      if (x && calc[k] > 0) x.innerHTML = `<span class="xd${lim != null && calc[k] > lim + 1e-9 ? ' bad' : ''}">${fmt(calc[k] / D, 2)} × D</span>`;
+    }
+    const r = compute({ ...calc, tool: { id: T.catalog ? T.catalog.tool : 'your tool', d: T.catalog ? T.d : undefined, nof: T.catalog ? T.nof : undefined, apmx: T.apmx } });
+    const bar = document.getElementById('resultbar'); if (bar) bar.innerHTML = resultbarInner(r);
+  };
+  let drag = null;
+  svg.addEventListener('pointerdown', e => {
+    const pt = svgPoint(svg, e);
+    drag = { x: pt.x, y: pt.y, ae: calc.ae || 0, ap: calc.ap || 0 };
+    svg.setPointerCapture(e.pointerId); svg.classList.add('dragging'); e.preventDefault();
+  });
+  svg.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const pt = svgPoint(svg, e);
+    calc.ae = snap(Math.min(D * 1.25, Math.max(0, drag.ae + (drag.x - pt.x) / s)));
+    calc.ap = snap(Math.min(H, Math.max(0, drag.ap + (pt.y - drag.y) / s)));
+    delete calc.examples?.ae; delete calc.examples?.ap;
+    if (!live.raf) live.raf = requestAnimationFrame(() => { live.raf = 0; live(); });
+  });
+  const end = () => { if (!drag) return; drag = null; svg.classList.remove('dragging'); saveCalc(); renderCalc(); };
+  svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', end);
+  svg.addEventListener('keydown', e => {
+    const k = { ArrowLeft: ['ae', 1], ArrowRight: ['ae', -1], ArrowDown: ['ap', 1], ArrowUp: ['ap', -1] }[e.key];
+    if (!k) return; e.preventDefault();
+    const inc = (e.shiftKey ? 0.1 : 0.02) * D;
+    calc[k[0]] = snap(Math.max(0, (calc[k[0]] || 0) + k[1] * inc)); saveCalc(); live();
+  });
+}
+function svgPoint(svg, e) {
+  const r = svg.getBoundingClientRect();
+  return { x: (e.clientX - r.left) * 340 / r.width, y: (e.clientY - r.top) * 236 / r.height };
+}
+
+// ---------- M.A. Ford published speeds and feeds ----------
+function publishedCard(pub, tool, mat, sfPdf) {
+  if (!tool) return '';
+  const link = (label) => sfPdf ? `<a class="ext" href="${esc(sfPdf)}" target="_blank" rel="noopener">${label}</a>` : '';
+  if (!pub) return sfPdf ? `<p class="muted small">M.A. Ford publishes speeds and feeds for Series ${esc(tool.series)}: ${link('Speed and Feed Data (PDF)')}. This demo has not read that sheet's layout yet.</p>` : '';
+  if (pub.noColumn) return `<p class="muted small">M.A. Ford's Speed and Feed Data for Series ${esc(tool.series)} lists diameters ${esc(pub.diameters.join(', '))}, not this tool's size. ${link('Open the PDF')}</p>`;
+  if (!mat) return `<div class="note info small">M.A. Ford publishes speeds and feeds for this tool (Series ${esc(tool.series)}, ${esc(pub.column)}"). Choose the workpiece material to see them.</div>`;
+  if (!pub.rows.length) return `<div class="note info small">M.A. Ford's Speed and Feed Data for Series ${esc(tool.series)} has no row for ${esc(mat.name.toLowerCase())}. ${link('Open the PDF')}</div>`;
+  const u = calc.units, toMetric = u === 'mm' && pub.unit === 'in';
+  const vcTxt = r => toMetric ? `${fmt(r.vcRange.lo * 0.3048, 0)}–${fmt(r.vcRange.hi * 0.3048, 0)} m/min` : `${esc(r.vc)} ${pub.unit === 'mm' ? 'm/min' : 'SFM'}`;
+  const fzTxt = r => toMetric ? `${fmt(r.fzAtD * 25.4, 3)} mm/tooth` : `${fzPrinted(r.fzAtD)} ${pub.unit === 'mm' ? 'mm' : 'in'}/tooth`;
+  return `<div class="pub card-inset">
+    <h3>M.A. Ford published data <small class="muted">· ${esc(pub.column)}" · ${esc(pub.locXD ? pub.locXD + '×D cutting length table' : '')}</small></h3>
+    ${!pub.opMatched ? '<p class="muted small">No row for the chosen operation; all rows for this material are shown.</p>' : ''}
+    <table class="dims pubt"><thead><tr><th>Operation</th><th>ae / ap</th><th>Vc</th><th>fz</th><th></th></tr></thead><tbody>
+    ${pub.rows.map((r, i) => `<tr><td>${esc(r.application)}<br><small class="muted">${esc(r.material)}</small></td><td>${esc(r.ae)}<br>${esc(r.ap)}</td><td>${vcTxt(r)}</td><td>${fzTxt(r)}</td><td><button type="button" class="btn small" data-pub="${i}">Use</button></td></tr>`).join('')}
+    </tbody></table>
+    <p class="muted small">From M.A. Ford's Speed and Feed Data for Series ${esc(tool.series)}, page ${esc(pub.page)} (advisory, as M.A. Ford notes). ${link('Open the PDF')}. "Use" fills fz, sets the operation's ae and ap at M.A. Ford's limits, and puts Vc at the low end of the printed range.</p>
+  </div>`;
+}
+function bindPublished(pub, T) {
+  document.querySelectorAll('[data-pub]').forEach(b => b.addEventListener('click', () => {
+    const r = pub.rows[+b.dataset.pub], u = calc.units, toMetric = u === 'mm' && pub.unit === 'in';
+    calc.speedFrom = 'vc'; calc.feedFrom = 'fz'; calc.examples = {};
+    calc.vc = toMetric ? +(r.vcRange.lo * 0.3048).toFixed(1) : r.vcRange.lo;
+    calc.fz = toMetric ? +(r.fzAtD * 25.4).toFixed(4) : r.fzAtD;
+    if (r.aeLim) calc.ae = +(r.aeLim.max * calc.d).toFixed(5);
+    if (r.apLim) calc.ap = +(Math.min(r.apLim.max * calc.d, T.apmx || Infinity)).toFixed(5);
+    calc.op = /slot/i.test(r.application) ? 'slot' : calc.op && calc.op !== 'slot' ? calc.op : 'hem';
+    saveCalc(); renderCalc(); toast(`M.A. Ford ${r.application.toLowerCase()} values loaded (page ${pub.page})`);
+  }));
 }
 
 // ---------- sheets ----------
@@ -579,6 +744,8 @@ async function renderCatalogs() {
     <table class="dims"><tbody>
       <tr><th>${esc(DOC_SHORT.gp)}</th><td><b>${countBy('gp').toLocaleString()}</b> end mills, ${seriesBy('gp')} series</td></tr>
       <tr><th>${esc(DOC_SHORT.hp)}</th><td><b>${countBy('hp').toLocaleString()}</b> end mills, ${seriesBy('hp')} series</td></tr>
+      ${countBy('web') ? `<tr><th>maford.com only (newer than Vol. 105)</th><td><b>${countBy('web').toLocaleString()}</b> end mills, ${seriesBy('web')} series, from the website's tool tables</td></tr>` : ''}
+      <tr><th>Speeds and feeds</th><td>M.A. Ford's published values shown for ${Object.values(SF).filter(x => x.tables.length).length ? esc(Object.keys(SF).filter(k => SF[k].tables.length).join(', ')) : 'no series yet'}; other series link to their data sheet or catalog pages</td></tr>
       <tr><th>Total loaded</th><td><b>${DATA.products.length.toLocaleString()}</b> catalog rows (each coating or shank version is its own part number)</td></tr>
     </tbody></table>
     <p><b>Not loaded:</b> ${cov.notLoaded.map(esc).join('; ')}.</p>
@@ -627,8 +794,20 @@ async function boot() {
   try {
     const get = n => fetch(`data/${n}.json`).then(r => { if (!r.ok) throw new Error(`${n}: ${r.status}`); return r.json(); });
     const [products, series, catalogs] = await Promise.all([get('products'), get('series'), get('catalogs')]);
-    WEB = await get('web').catch(() => null); // optional: official images and website listings
-    if (WEB) for (const [id, w] of Object.entries(WEB.series || {})) if (series[id]) series[id].webIso = [...new Set((w.materials || []).map(m => m.iso).filter(Boolean))];
+    // Optional website data: official images and listings, website-only series, published speeds and feeds.
+    const [web, webSeries_, webProducts, speedfeed] = await Promise.all(['web', 'web-series', 'web-products', 'speedfeed'].map(n => get(n).catch(() => null)));
+    WEB = web || { series: {}, tools: {} };
+    SF = speedfeed?.series || {};
+    for (const [id, w] of Object.entries(webSeries_?.series || {})) {
+      WEB.series[id] = { ...w, ...(WEB.series[id] || {}), speedFeedPdf: w.speedFeedPdf, description: w.description };
+      if (!series[id] && w.tools) {
+        // A series on maford.com that is not in the loaded Vol. 105 catalog sections.
+        const line = (w.description.match(/TuffCut\s*([A-Z0-9-]+)/i) || [])[1];
+        series[id] = { id, doc: 'web', web: true, title: `${line || 'Series'} - Series ${id}`, line: line ? `TuffCut ${line}` : null, nof: w.nof, corners: [], features: [], notes: w.description ? [w.description] : [], pages: [], page: w.page };
+      }
+    }
+    if (webProducts) products.push(...webProducts.filter(p => !products.some(q => q.id === p.id)));
+    for (const [id, w] of Object.entries(WEB.series)) if (series[id]) series[id].webIso = [...new Set((w.materials || []).map(m => m.iso).filter(Boolean))];
     DATA = { products, series, catalogs };
     BY_ID = new Map(products.map(p => [p.id, p]));
     SERIES_IDS = Object.keys(series).sort((a, b) => series[a].doc.localeCompare(series[b].doc) || a.localeCompare(b, 'en', { numeric: true }));
