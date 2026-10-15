@@ -251,3 +251,7 @@ dialog.sheet { margin: auto auto 0; width: 100%; max-width: 560px; max-height: 8
 .steppers span { font-weight: 700; color: var(--accent); width: 22px; text-align: right; }
 .steppers .btn { min-width: 44px; font-size: 1.2rem; touch-action: manipulation; }
 .rb-why { grid-column: 1 / -1; font-size: .9rem; font-weight: 600; text-align: center; padding: 8px 0; }
+
+/* size drop-downs under the search box */
+.sizes { margin: 10px 0 0; }
+.sizes select:disabled { opacity: .55; }

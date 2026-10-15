@@ -66,14 +66,17 @@ function route() {
 window.addEventListener('hashchange', () => { route(); view.focus({ preventScroll: true }); window.scrollTo(0, 0); });
 
 // ---------- Find Tools ----------
-const find = { q: '', dc: '', re: '', nof: new Set(), corner: new Set(), coating: new Set(), series: '', material: '', seriesOnly: false, locMin: '', locMax: '', oalMin: '', oalMax: '', limit: 40, open: false };
+const find = { q: '', dc: '', re: '', nof: new Set(), corner: new Set(), coating: new Set(), series: '', material: '', seriesOnly: false, loc: '', oalMin: '', oalMax: '', limit: 40, open: false };
 const EXAMPLES = ['1/2 4 flute', '3/8 ball nose', '12mm corner radius 1mm', 'half inch 3 flute aluminum', '1/4 x 3/4 x 2-1/2', '.030r stainless 5 flute', '27712500B'];
 
 function findCriteria() {
   const parsed = parseQuery(find.q, SERIES_IDS);
   const c = { ...parsed.crit };
   const L = s => parseLength(s);
-  if (find.dc.trim()) { const v = L(find.dc); if (v) c.dc = v; }
+  // Once the drop-downs have taken a size from the typed search, they own it (so "Any" really clears it).
+  if (find.sizeFor === find.q) { delete c.dc; delete c.loc; }
+  if (find.dc) c.dc = { in: +find.dc, unit: 'in' };
+  if (find.loc) c.loc = { in: +find.loc, unit: 'in' };
   if (find.re.trim()) { const v = L(find.re); if (v) { c.re = v; c.corner = ['corner radius']; } }
   if (find.nof.size) c.nof = [...find.nof];
   if (find.corner.size) c.corner = [...find.corner];
@@ -81,10 +84,33 @@ function findCriteria() {
   if (find.series) c.series = [find.series];
   if (find.material) c.material = find.material;
   if (c.material && find.seriesOnly) c.seriesTablesOnly = true;
-  for (const k of ['locMin', 'locMax', 'oalMin', 'oalMax']) if (find[k].trim()) { const v = L(find[k]); if (v) c[k] = v.in; }
+  for (const k of ['oalMin', 'oalMax']) if (find[k].trim()) { const v = L(find[k]); if (v) c[k] = v.in; }
   return { c, parsed };
 }
 
+const key4 = v => (+v).toFixed(4);
+// Diameter drop-down: sizes in the current results (other filters applied, size filters not).
+function diameterOptions(c) {
+  const base = { ...c }; delete base.dc; delete base.loc; delete base.dcMin; delete base.dcMax;
+  const m = new Map();
+  for (const p of search(DATA.products, base, DATA.series)) {
+    const k = key4(p.dc), o = m.get(k) || { k, n: 0, mm: null, inch: false };
+    o.n++; if (p.sys === 'mm' && p.t?.DC) o.mm = p.t.DC; else o.inch = true; m.set(k, o);
+  }
+  return [...m.values()].sort((a, b) => a.k - b.k).map(o => ({ ...o, label: o.inch ? inch(+o.k) : o.mm }));
+}
+// Length-of-cut drop-down: the cutting lengths available for the chosen diameter.
+function locOptions(c) {
+  if (!c.dc) return [];
+  const base = { ...c }; delete base.loc;
+  const m = new Map();
+  for (const p of search(DATA.products, base, DATA.series)) {
+    if (p.apmx == null) continue;
+    const k = key4(p.apmx), o = m.get(k) || { k, n: 0, label: p.sys === 'mm' && p.t?.APMX ? p.t.APMX : inch(p.apmx) };
+    o.n++; m.set(k, o);
+  }
+  return [...m.values()].sort((a, b) => a.k - b.k);
+}
 function facetCounts(c, key) {
   const base = { ...c }; delete base[key];
   if (key === 'corner' && base.re) delete base.re;
@@ -133,11 +159,24 @@ function matSource(id, iso) {
 function renderFind(params) {
   if (params?.get('series') || params?.get('dc')) {
     // Arrived from the calculator's tool guidance: show that series in that size (and the job's material).
-    Object.assign(find, { q: '', re: '', locMin: '', locMax: '', oalMin: '', oalMax: '', seriesOnly: false, limit: 40, open: true, series: params.get('series') || '', dc: params.get('dc') || '', material: materialById(calc.material)?.iso || '' });
-    find.nof.clear(); find.corner.clear(); find.coating.clear();
+    Object.assign(find, { q: '', re: '', loc: '', oalMin: '', oalMax: '', seriesOnly: false, limit: 40, open: true, series: params.get('series') || '', dc: params.get('dc') || '', material: materialById(calc.material)?.iso || '' });
+    find.nof.clear(); find.corner.clear(); find.coating.clear(); find.loc = '';
+    const L = parseLength(find.dc); find.dc = L ? key4(L.in) : '';
     history.replaceState(null, '', '#/find');
   }
-  const { c, parsed } = findCriteria();
+  let { c, parsed } = findCriteria();
+  // A diameter typed in the search fills the drop-down; a cutting length no longer offered is cleared.
+  const dOpts = diameterOptions(c);
+  if (find.sizeFor !== find.q && (parsed.crit.dc || parsed.crit.loc)) {
+    find.sizeFor = find.q;
+    if (parsed.crit.dc) { const hit = dOpts.find(o => Math.abs(o.k - parsed.crit.dc.in) < 0.0006); find.dc = hit ? hit.k : ''; }
+    if (parsed.crit.loc) find.locWanted = parsed.crit.loc.in;
+  }
+  if (find.dc && !dOpts.some(o => o.k === find.dc)) { const hit = dOpts.find(o => Math.abs(o.k - +find.dc) < 0.0006); find.dc = hit ? hit.k : find.dc; }
+  ({ c, parsed } = findCriteria());
+  const lOpts = locOptions(c);
+  if (find.locWanted != null) { const hit = lOpts.find(o => Math.abs(o.k - find.locWanted) < 0.0011); if (hit) find.loc = hit.k; find.locWanted = null; ({ c, parsed } = findCriteria()); }
+  if (find.loc && !lOpts.some(o => o.k === find.loc)) { find.loc = ''; ({ c, parsed } = findCriteria()); }
   const results = search(DATA.products, c, DATA.series);
   // With a material chosen, series with their own cutting-data table come before the general GP table.
   if (c.material) results.sort((x, y) => (DATA.series[x.series]?.materials?.scope === 'series' ? 0 : 1) - (DATA.series[y.series]?.materials?.scope === 'series' ? 0 : 1) || (DATA.series[y.series]?.webIso?.includes(c.material) ? 1 : 0) - (DATA.series[x.series]?.webIso?.includes(c.material) ? 1 : 0));
@@ -155,18 +194,19 @@ function renderFind(params) {
     <input id="q" type="search" enterkeyhint="search" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Describe a tool" placeholder="Describe a tool: 1/2 4 flute ball, 12mm, 27712500B" value="${esc(find.q)}">
   </div>
   ${find.q ? `<p class="read">${parsed.read.length ? `<b>Read as:</b> ${parsed.read.map(esc).join(' · ')}` : ''}${parsed.unused.length ? `${parsed.read.length ? '<br>' : ''}<b>Not used:</b> ${parsed.unused.map(esc).join(', ')} <small>(words the search does not understand are ignored)</small>` : ''}</p>` : `<div class="chips" style="margin-top:10px" aria-label="Example searches">${EXAMPLES.map(e => `<button type="button" class="chip" data-example="${esc(e)}">${esc(e)}</button>`).join('')}</div>`}
+  <div class="sizes grid2">
+    <div><label for="f-dcSel">Diameter</label><select id="f-dcSel" data-size="dc"><option value="">Any (${dOpts.length} sizes)</option>${dOpts.map(o => `<option value="${o.k}" ${find.dc === o.k ? 'selected' : ''}>${esc(o.label)} (${o.n})</option>`).join('')}</select></div>
+    <div><label for="f-locSel">Length of cut</label><select id="f-locSel" data-size="loc" ${c.dc ? '' : 'disabled'}><option value="">${c.dc ? `Any (${lOpts.length} lengths)` : 'Pick a diameter first'}</option>${lOpts.map(o => `<option value="${o.k}" ${find.loc === o.k ? 'selected' : ''}>${esc(o.label)} (${o.n})</option>`).join('')}</select></div>
+  </div>
   ${answerCard(results, c)}
   <details class="card filters" style="margin-top:12px" ${find.open ? 'open' : ''}>
     <summary>Filters ${anyFilter ? `<span class="tag ok">${results.length.toLocaleString()} match</span>` : ''}</summary>
     <div class="grid2 fgroup">
-      <div><label for="f-dc">Diameter</label><input id="f-dc" data-k="dc" inputmode="text" placeholder='1/2, .375, 12mm' value="${esc(find.dc)}"></div>
       <div><label for="f-re">Corner radius</label><input id="f-re" data-k="re" placeholder='.030, 0.5mm' value="${esc(find.re)}"></div>
     </div>
     <div class="fgroup"><div class="label">Flutes</div><div class="chips">${nofs.map(n => chip('nof', n, `${n}`, fn.get(n))).join('')}</div></div>
     <div class="fgroup"><div class="label">Corner style</div><div class="chips">${Object.entries(CORNERS).map(([k, v]) => chip('corner', k, v, fc.get(k))).join('')}</div></div>
     <div class="grid2 fgroup">
-      <div><label for="f-locMin">Cutting length (APMX) min</label><input id="f-locMin" data-k="locMin" placeholder="e.g. 1/2" value="${esc(find.locMin)}"></div>
-      <div><label for="f-locMax">max</label><input id="f-locMax" data-k="locMax" placeholder="e.g. 1-1/4" value="${esc(find.locMax)}"></div>
       <div><label for="f-oalMin">Overall length (OAL) min</label><input id="f-oalMin" data-k="oalMin" placeholder="e.g. 2" value="${esc(find.oalMin)}"></div>
       <div><label for="f-oalMax">max</label><input id="f-oalMax" data-k="oalMax" placeholder="e.g. 4" value="${esc(find.oalMax)}"></div>
     </div>
@@ -201,9 +241,13 @@ function renderFind(params) {
     i.setAttribute('aria-invalid', bad ? 'true' : 'false');
     clearTimeout(renderFind.t); renderFind.t = setTimeout(() => rerenderFind('#' + i.id), i.tagName === 'SELECT' ? 0 : 300);
   }));
+  view.querySelectorAll('[data-size]').forEach(sel => sel.addEventListener('change', () => {
+    find[sel.dataset.size] = sel.value; if (sel.dataset.size === 'dc') find.loc = '';
+    find.limit = 40; rerenderFind('#' + sel.id);
+  }));
   $('#f-seriesOnly').addEventListener('change', e => { find.seriesOnly = e.target.checked; rerenderFind(); });
   $('details.filters').addEventListener('toggle', e => { find.open = e.target.open; });
-  $('#f-clear').addEventListener('click', () => { Object.assign(find, { q: '', dc: '', re: '', series: '', material: '', seriesOnly: false, locMin: '', locMax: '', oalMin: '', oalMax: '', limit: 40 }); find.nof.clear(); find.corner.clear(); find.coating.clear(); rerenderFind(); });
+  $('#f-clear').addEventListener('click', () => { Object.assign(find, { q: '', dc: '', loc: '', re: '', series: '', material: '', seriesOnly: false, oalMin: '', oalMax: '', limit: 40 }); find.nof.clear(); find.corner.clear(); find.coating.clear(); rerenderFind(); });
   $('#more')?.addEventListener('click', () => { find.limit += 40; rerenderFind(); });
 }
 function rerenderFind(focusSel) {
@@ -941,7 +985,7 @@ async function renderCatalogs() {
       <tr><th>Speeds and feeds</th><td>M.A. Ford's published values shown for ${Object.values(SF).filter(x => x.tables.length).length ? esc(Object.keys(SF).filter(k => SF[k].tables.length).join(', ')) : 'no series yet'}; other series link to their data sheet or catalog pages</td></tr>
       <tr><th>Total loaded</th><td><b>${DATA.products.length.toLocaleString()}</b> catalog rows (each coating or shank version is its own part number)</td></tr>
     </tbody></table>
-    <p><b>Not loaded:</b> ${cov.notLoaded.map(esc).join('; ')}.</p>
+    <p><b>Not loaded:</b> ${cov.notLoaded.map(esc).join('; ')}; tools under 1/8" (left out of this demo).</p>
     <p class="muted" style="font-size:.85rem">Read on ${esc(C.extracted)} from M.A. Ford Product Catalog Vol. 105. Every row's printed decimal size was checked against the diameter coded in its own part number${WEB ? `, and against the size in M.A. Ford's website description (checked ${esc(WEB.checked)}; ${(WEB.toolCount || Object.keys(WEB.tools || {}).length).toLocaleString()} tools listed there)` : ''}. Check the catalog before ordering.</p>
     ${WEB ? '<p class="muted small">Product photos, drawings and material/application icons are shown directly from maford.com and remain M.A. Ford\'s.</p>' : ''}
   </div>
@@ -989,6 +1033,9 @@ async function boot() {
       }
     }
     if (webProducts) { const have = new Set(products.map(p => p.id)); products.push(...webProducts.filter(p => !have.has(p.id))); }
+    // Demo scope: micro tools under 1/8" are not shown (they stay in the data files).
+    const MIN_DC = 0.125 - 1e-6;
+    for (let i = products.length - 1; i >= 0; i--) if (products[i].dc < MIN_DC) products.splice(i, 1);
     for (const [id, w] of Object.entries(WEB.series)) if (series[id]) series[id].webIso = [...new Set((w.materials || []).map(m => m.iso).filter(Boolean))];
     DATA = { products, series, catalogs };
     BY_ID = new Map(products.map(p => [p.id, p]));
