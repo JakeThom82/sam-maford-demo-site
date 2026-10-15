@@ -207,3 +207,5 @@ dialog.sheet { margin: auto auto 0; width: 100%; max-width: 560px; max-height: 8
 .pubt th, .pubt td { font-size: .82rem; padding: .35rem .25rem; width: auto; }
 .answer { border: 2px solid var(--accent); }
 .pubt td { white-space: normal; } .pubt td:nth-child(2) { white-space: nowrap; }
+.cut-card h2 small { font-weight: 400; } .engage-empty { margin: .2rem 0 .4rem; }
+.eng-handle circle { fill: var(--accent); opacity: .9; } .eng-handle path { stroke: #fff; stroke-width: 1.6; fill: none; stroke-linecap: round; } .engage svg.dragging .eng-handle circle { opacity: .6; }

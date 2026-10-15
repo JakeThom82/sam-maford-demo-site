@@ -363,6 +363,8 @@ function renderCalc(params) {
 
   <div class="ops chips" role="group" aria-label="Operation">${OPERATIONS.map(o => `<button type="button" class="chip" data-op="${o.id}" aria-pressed="${calc.op === o.id}">${esc(o.name)}</button>`).join('')}</div>
 
+  <div class="card cut-card"><h2>Drag the cutter <small class="muted">· see the cut</small></h2>${engageHtml()}</div>
+
   <div class="card">
     <div class="row" style="justify-content:space-between;margin-bottom:6px"><h2 style="margin:0">Speed &amp; feed</h2>
       <div class="seg" role="group" aria-label="Units"><button type="button" data-units="in" aria-pressed="${u === 'in'}">Inch</button><button type="button" data-units="mm" aria-pressed="${u === 'mm'}">Metric</button></div></div>
@@ -375,7 +377,6 @@ function renderCalc(params) {
       <div class="field"><label for="c-ap">ap (${U.len}) <span id="xd-ap">${xD(calc.ap, T.apmx)}</span></label>${input('ap', 'axial depth')}</div>
     </div>
     <div class="list-actions"><button type="button" class="btn small" id="c-presets">Engagement presets</button><button type="button" class="btn small" id="c-example">Fill example values</button><button type="button" class="btn small" id="c-reset">Clear</button></div>
-    ${engageHtml()}
     ${publishedCard(pub, tool, mat, sfPdf)}
     ${tool && cutPages.length && !pub?.rows?.length ? `<p class="muted small">M.A. Ford publishes starting speeds and feeds for Series ${esc(tool.series)} on catalog pages ${cutPages.join(', ')}${mat ? ` (look for ${esc(mat.name.toLowerCase())})` : ''}. ${catalogLink(tool.doc, s.cuttingData[0].pdfPage, 'Open page ' + cutPages[0])}</p>` : ''}
     <p class="muted small">${pub?.rows?.length ? 'Vc and fz are yours to set: use M.A. Ford\'s published values above, or your own.' : 'Vc and fz are yours to enter. M.A. Ford\'s published values appear here when their data sheet for this series has been read.'} Example values only show the maths.</p>
@@ -410,6 +411,7 @@ function renderCalc(params) {
 
   // Tool sheet / material sheet / presets
   $('#c-tool').addEventListener('click', openToolSheet);
+  $('#c-tool2')?.addEventListener('click', openToolSheet);
   $('#c-mat').addEventListener('click', openMaterialSheet);
   $('#c-presets').addEventListener('click', openPresetSheet);
   $('#c-more')?.addEventListener('click', () => { guideLimit = 999; renderCalc(); });
@@ -487,7 +489,7 @@ function resultbarInner(r) {
 }
 
 function engageHtml() {
-  if (!(calc.d > 0)) return '<p class="muted small engage-empty">Set a tool diameter to see the cut and drag the cutter.</p>';
+  if (!(calc.d > 0)) return '<p class="engage-empty">Pick a tool (or enter a diameter) and the cutter appears here: drag it sideways for ae and up or down for ap. It turns red when it goes too far into the part.</p><div class="list-actions"><a class="btn primary small" href="#/find">Pick a tool</a><button type="button" class="btn small" id="c-tool2">Enter my own sizes</button></div>';
   return `<figure class="engage" id="engage">
     <svg id="eng-svg" viewBox="0 0 340 236" role="slider" tabindex="0" aria-label="Cutter position: drag sideways for ae, up and down for ap. Arrow keys also move it."></svg>
     <figcaption id="eng-cap"></figcaption>
@@ -527,12 +529,13 @@ function drawEngage() {
     <rect x="${toolL}" y="${fluteTop}" width="${tw}" height="${bottom - fluteTop}" fill="url(#flg)" class="eng-tool"/>
     ${ae > 0 && ap > 0 ? `<rect x="${toolL}" y="${top}" width="${engW}" height="${Math.min(ap, H) * s}" fill="${bad ? 'var(--bad)' : 'var(--good)'}" opacity=".85" class="eng-tool"/>` : ''}
     ${loc ? `<line x1="${toolL + tw + 6}" y1="${fluteTop}" x2="${toolL + tw + 6}" y2="${bottom}" stroke="var(--muted)"/><text x="${Math.min(toolL + tw + 9, 300)}" y="${(fluteTop + bottom) / 2 + 4}" class="eng-lt">flutes</text>` : ''}
-    <text x="${xr - 4}" y="${blockBottom + 16}" text-anchor="end" class="eng-lt">workpiece</text>`;
+    <text x="${xr - 4}" y="${blockBottom + 16}" text-anchor="end" class="eng-lt">workpiece</text>
+    <g class="eng-handle" transform="translate(${toolL + tw / 2} ${Math.max(16, fluteTop - 14)})"><circle r="13"/><path d="M-7 0H7M0-7V7M-7 0l3-3M-7 0l3 3M7 0l-3-3M7 0l-3 3M0-7l-3 3M0-7l3 3M0 7l-3-3M0 7l3-3"/></g>`;
   const cap = document.getElementById('eng-cap');
   const xd = (v, lim) => `<b class="${lim != null && v > lim + 1e-9 ? 'bad' : ''}">${fmt(v / D, 2)} × D</b>`;
   const unit = calc.units === 'mm' ? 'mm' : 'in';
   cap.innerHTML = `ae ${fmt(ae, 3)} ${unit} ${xd(ae, Math.min(L.aeHard, L.aePub ?? Infinity))} · ap ${fmt(ap, 3)} ${unit} ${xd(ap, Math.min(L.apHard ?? Infinity, L.apPub ?? Infinity))}<br>
-    <span class="${bad ? 'bad' : 'good'}">${overHard ? (ap > (L.apHard ?? Infinity) ? 'Deeper than the flute length' : 'Wider than the cutter') : overPub ? `Past M.A. Ford's published limit for ${esc(L.pubLabel)}` : ae > 0 && ap > 0 ? (L.pubLabel ? `Within M.A. Ford's published limit for ${esc(L.pubLabel)}` : 'Within the tool\'s flute length and diameter') : 'Drag the cutter into the part'}</span>`;
+    <span class="${bad ? 'bad' : 'good'}">${overHard ? (ap > (L.apHard ?? Infinity) ? 'Deeper than the flute length' : 'Wider than the cutter') : overPub ? `Past M.A. Ford's published limit for ${esc(L.pubLabel)}` : ae > 0 && ap > 0 ? (L.pubLabel ? `Within M.A. Ford's published limit for ${esc(L.pubLabel)}` : 'Within the tool\'s flute length and diameter') : '<span class="muted">Grab the cutter and drag it into the part</span>'}</span>`;
 }
 
 function bindEngage(T, pub) {
@@ -541,8 +544,11 @@ function bindEngage(T, pub) {
   const lim = engageLimits(T, pub);
   // Scale: the block is a little deeper than the flutes (or the published ap limit); the cutter keeps a readable width.
   const H = Math.max((loc || 2 * D) * 1.25, 2.2 * D, (lim.apPub || 0) * 1.1, (calc.ap || 0) * 1.05);
-  const s = Math.min(170 / H, 90 / D);
-  ENG = { D, loc, s, top: 40, xr: 200, H, lim };
+  const s = Math.min(150 / H, 90 / D);
+  const top = Math.round((loc || 2 * D) * s + 34);          // room above the part for the cutter
+  const VH = Math.round(top + H * s + 26);
+  svg.setAttribute('viewBox', `0 0 340 ${VH}`);
+  ENG = { D, loc, s, top, xr: 200, H, lim, VH };
   drawEngage();
   const step = calc.units === 'mm' ? 0.01 : 0.001;
   const snap = v => Math.round(v / step) * step;
@@ -581,7 +587,7 @@ function bindEngage(T, pub) {
 }
 function svgPoint(svg, e) {
   const r = svg.getBoundingClientRect();
-  return { x: (e.clientX - r.left) * 340 / r.width, y: (e.clientY - r.top) * 236 / r.height };
+  return { x: (e.clientX - r.left) * 340 / r.width, y: (e.clientY - r.top) * (ENG?.VH || 236) / r.height };
 }
 
 // ---------- M.A. Ford published speeds and feeds ----------
@@ -763,8 +769,9 @@ async function renderCatalogs() {
     ${installPrompt ? '<button type="button" class="btn primary" id="install">Install app</button>' : ''}
   </div>
   <div class="card"><h2>About</h2>
-    <p>Independent prototype for discussion. Not an M.A. Ford product, and not endorsed by M.A. Ford. M.A. Ford's own calculator app: <a class="ext" href="https://apps.apple.com/us/app/m-a-ford-machining-calculator/id1554634640" target="_blank" rel="noopener">App Store</a>.</p>
+    <p>Independent prototype for discussion. Not an M.A. Ford product, and not endorsed by M.A. Ford. <span class="muted small" id="app-version"></span> M.A. Ford's own calculator app: <a class="ext" href="https://apps.apple.com/us/app/m-a-ford-machining-calculator/id1554634640" target="_blank" rel="noopener">App Store</a>.</p>
   </div>`;
+  fetch('sw.js').then(r => r.text()).then(t => { const v = (t.match(/VERSION = '([0-9a-f]+)'/) || [])[1]; const el = $('#app-version'); if (v && el) el.textContent = 'App version ' + v + '.'; }).catch(() => {});
   $('#install')?.addEventListener('click', async () => { installPrompt.prompt(); await installPrompt.userChoice.catch(() => {}); installPrompt = null; renderCatalogs(); });
   let st = await offlineStatus();
   // On a first visit the service worker may still be saving files: check again once it is ready.
@@ -815,6 +822,11 @@ async function boot() {
   } catch (e) {
     view.innerHTML = `<div class="card"><h1>Could not load the catalog data</h1><p>${esc(e.message)}</p><p>If you are offline, open the app once while online so it can save the data.</p></div>`;
   }
-  if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    const hadController = !!navigator.serviceWorker.controller;
+    // A new version was published: reload once so the phone runs it straight away.
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController && !boot.reloaded) { boot.reloaded = true; location.reload(); } });
+    navigator.serviceWorker.register('sw.js').then(r => r.update()).catch(() => {});
+  }
 }
 boot();
