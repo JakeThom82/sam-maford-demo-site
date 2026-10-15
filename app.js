@@ -230,6 +230,7 @@ function renderTool(id) {
   const mats = s.materials;
   const cutPages = (s.cuttingData || []).map(c => c.page);
   const ws = webSeries(p.series), wdesc = WEB?.tools?.[p.id];
+  if (!WEB.tools) webTools().then(() => { if (location.hash.startsWith('#/tool/' + encodeURIComponent(p.id))) renderTool(id); });
   const mfPage = `${MF}/product-details/${encodeURIComponent(p.tool)}`;
   const offPic = label => `onerror="this.replaceWith(Object.assign(document.createElement('p'),{className:'pic-off',textContent:'${label} needs internet'}))"`;
   const gallery = ws?.photo || ws?.drawing ? `<div class="card gallery">
@@ -344,6 +345,7 @@ function renderCalc(params) {
   const mat = materialById(calc.material);
   const op = OPERATIONS.find(o => o.id === calc.op);
   const rec = catalogRec(T, mat); applyRec(rec, T);
+  LAST_WHY = !tool && !(calc.d > 0) ? 'Pick a tool to start' : rec?.needPath ? 'Choose a toolpath' : rec?.none ? (rec.unread ? 'M.A. Ford table not read yet: enter Vc and fz' : 'No M.A. Ford data for this: see the message') : !mat && tool ? 'Choose the workpiece material' : null;
   const r = compute({ ...calc, tool: { id: tool ? tool.tool : 'your tool', d: tool ? T.d : undefined, nof: tool ? T.nof : undefined, apmx: T.apmx } });
   const num = v => v == null || v === '' || Number.isNaN(v) ? '' : String(+(+v).toFixed(6));
   const L = v => v == null || Number.isNaN(v) ? '—' : u === 'mm' ? `${fmt(v, 2)}` : (fractionInches(v) ? fractionInches(v) : decimalInches(v, 3));
@@ -491,6 +493,7 @@ function bindNumberInputs(root, rerender) {
 // recommended-cutting-data table (lib/recommend.js) and update as the cutter is dragged. Typing your
 // own Vc or fz switches to manual until "Use M.A. Ford values" is tapped.
 let CUT = { tables: [] };
+let LAST_RPM = 0, LAST_WHY = null;
 function jobType() {
   if (calc.path?.type) return calc.path.type;
   if (calc.ae > 0) return calc.ae >= calc.d - 1e-9 ? 'slot' : 'side';
@@ -501,7 +504,7 @@ function catalogRec(T, mat) {
   if (!tool || !mat || SF[tool.series]?.tables?.length) return null;   // website sheet (e.g. XAL5R) is used instead
   const type = jobType(); if (!type) return { needPath: true };
   const f = calc.units === 'mm' ? 1 / MM_PER_IN : 1;
-  const rec = recommend({ tool, materialId: mat.id, materialIso: mat.iso, type, ae: (type === 'slot' ? calc.d : calc.ae || 0) * f, ap: (calc.ap || 0) * f, finishing: calc.op === 'finish' }, CUT.tables, DATA.series);
+  const rec = recommend({ tool, materialId: mat.id, materialIso: mat.iso, type, ae: (type === 'slot' ? calc.d : calc.ae || 0) * f, ap: (calc.ap || 0) * f, finishing: calc.op === 'finish', coolant: calc.coolant || null }, CUT.tables, DATA.series);
   if (rec?.none && !rec.noRow) {
     // The catalog lists cutting-data pages for this series that this demo has not read yet.
     const base = [tool.series, tool.series.replace(/N$/, ''), tool.series.replace(/C$/, '')].find(id => DATA.series[id]?.cuttingData?.length);
@@ -520,10 +523,12 @@ function applyRec(rec, T) {
     return false;
   }
   if (calc.manual) { calc.dEff = rec.dEff < T.catalog.dc - 1e-9 ? (calc.units === 'mm' ? rec.dEff * MM_PER_IN : rec.dEff) : undefined; return false; }
-  const toM = calc.units === 'mm', vcUse = calc.vcMode === 'interp' ? rec.vcInterp : rec.vc;
+  // Speed and feed adjust (like the override dials in M.A. Ford's app): a percentage on top of the catalog values.
+  const toM = calc.units === 'mm', vcUse = (calc.vcMode === 'interp' ? rec.vcInterp : rec.vc) * (1 + (calc.vcAdj || 0) / 100);
   calc.speedFrom = 'vc'; calc.feedFrom = 'fz'; calc.examples = {};
   calc.vc = toM ? +(vcUse * 0.3048).toFixed(1) : Math.round(vcUse);
-  calc.fz = toM ? +(rec.fz * 25.4).toFixed(4) : +rec.fz.toFixed(5);
+  const fzUse = rec.fz * (1 + (calc.fzAdj || 0) / 100);
+  calc.fz = toM ? +(fzUse * 25.4).toFixed(5) : +fzUse.toFixed(5);
   calc.dEff = rec.dEff < T.catalog.dc - 1e-9 ? (toM ? rec.dEff * MM_PER_IN : rec.dEff) : undefined;
   calc.autoVals = true; calc.pubFrom = null;
   return true;
@@ -545,18 +550,26 @@ function recCard(rec, T) {
   return `<div class="pub card-inset${rec.checks.length ? ' is-out' : ''}">
     <h3>M.A. Ford catalog recommendation ${calc.manual ? '<span class="tag">your values in use</span>' : '<span class="tag ok">in use</span>'}</h3>
     <dl class="kv small">
-      <dt>Vc</dt><dd><b>${vTxt(calc.vcMode === 'interp' ? rec.vcInterp : rec.vc)}</b> · ${rec.kind === 'ap' ? 'ap' : 'ae'} ${fmt(rec.pct, 0)}% of D → ${calc.vcMode === 'interp' && interp ? 'interpolated between columns' : `${rec.vcColumn}% column (next wider)`}
+      <dt>Vc</dt><dd><b>${vTxt(calc.vcMode === 'interp' ? rec.vcInterp : rec.vc)}</b> · ${rec.micro ? `micro chart: one speed for this material${rec.microMaxPct != null ? `; limit ${rec.microMaxPct}% Dia. ${rec.kind} for this size` : ''}${rec.microApMaxX ? `, < ${rec.microApMaxX} Dia. ap` : ''}` : `${rec.kind === 'ap' ? 'ap' : 'ae'} ${fmt(rec.pct, 0)}% of D → ${calc.vcMode === 'interp' && interp ? 'interpolated between columns' : `${rec.vcColumn}% column (next wider)`}`}
         ${interp ? `<div class="seg small-seg" role="group" aria-label="Speed from"><button type="button" data-vcmode="col" aria-pressed="${calc.vcMode !== 'interp'}">Printed ${vTxt(rec.vc)}</button><button type="button" data-vcmode="interp" aria-pressed="${calc.vcMode === 'interp'}">Interpolated ${vTxt(rec.vcInterp)}</button></div>` : ''}</dd>
       <dt>fz</dt><dd><b>${fTxt(rec.fz)}</b> · ${fTxt(rec.fzBase)} (${esc(rec.fzColumn)}" column${T.catalog.dc - rec.diameterIn > 1e-3 ? ', next smaller' : ''})${rec.factor !== 1 ? ` × ${rec.factor} chip thinning` : rec.finishing ? ' · finishing: standard fz, no chip thinning' : ''}</dd>
       ${rec.dEff < T.catalog.dc - 1e-9 ? `<dt>Ball</dt><dd>effective diameter ${fmt(toM ? rec.dEff * 25.4 : rec.dEff, 4)} ${u} at this depth</dd>` : ''}
-      <dt>Source</dt><dd>Catalog page ${esc(rec.source.page)}${rec.source.via && rec.source.via !== 'general-purpose' ? ` (Series ${esc(rec.source.via)} table, used for ${esc(s)})` : rec.source.via === 'general-purpose' ? ' (general-purpose end mill table)' : ''} · ${esc(rec.source.row)} ${catalogLink(rec.source.doc, rec.source.pdfPage, 'Open page')}</dd>
+      <dt>Source</dt><dd>Catalog page ${esc(rec.source.page)}${rec.source.via === 'micro' ? ` (micro chart, Series ${esc(s)}: 1/4" and below)` : rec.source.via && rec.source.via !== 'general-purpose' ? ` (Series ${esc(rec.source.via)} table, used for ${esc(s)})` : rec.source.via === 'general-purpose' ? ' (general-purpose end mill table)' : ''} · ${esc(rec.source.row)} ${catalogLink(rec.source.doc, rec.source.pdfPage, 'Open page')}</dd>
     </dl>
+    ${Object.keys(rec.coolants || {}).length ? `<div class="cool"><span class="muted small">Coolant</span>${Object.entries(rec.coolants).map(([k, v]) => `<button type="button" class="chip cool-${v.replace(' ', '-')}" data-coolant="${esc(k)}" aria-pressed="${calc.coolant === k}">${v === 'preferred' ? '●' : v === 'possible' ? 'o' : '✕'} ${esc(k)}</button>`).join('')}<span class="muted small">● preferred · o possible · ✕ not possible</span></div>` : ''}
+    ${!calc.manual ? `<div class="adj"><label>Speed adjust <b>${calc.vcAdj > 0 ? '+' : ''}${calc.vcAdj || 0}%</b><input type="range" min="-20" max="20" step="5" value="${calc.vcAdj || 0}" data-adj="vcAdj" aria-label="Speed adjust percent"></label><label>Feed adjust <b>${calc.fzAdj > 0 ? '+' : ''}${calc.fzAdj || 0}%</b><input type="range" min="-20" max="20" step="5" value="${calc.fzAdj || 0}" data-adj="fzAdj" aria-label="Feed adjust percent"></label></div>` : ''}
     ${rec.notes.length ? `<p class="muted small">${rec.notes.map(esc).join(' ')}</p>` : ''}
+    ${rec.balanceRpm && LAST_RPM > rec.balanceRpm ? `<p class="note warn small">M.A. Ford: above ${rec.balanceRpm.toLocaleString()} RPM, tool balancing is required (page ${esc(rec.source.page)}).</p>` : ''}
     ${rec.checks.length ? `<div class="note err small"><b>Out of M.A. Ford's spec</b><ul>${rec.checks.map(c => `<li>${esc(c)}</li>`).join('')}</ul></div>` : ''}
     ${calc.manual ? '<button type="button" class="btn small primary" id="rec-use">Use M.A. Ford values</button>' : ''}
   </div>`;
 }
 function bindRec() {
+  document.querySelectorAll('[data-coolant]').forEach(b => b.addEventListener('click', () => { calc.coolant = calc.coolant === b.dataset.coolant ? null : b.dataset.coolant; saveCalc(); renderCalc(); }));
+  document.querySelectorAll('[data-adj]').forEach(i => {
+    i.addEventListener('input', () => { calc[i.dataset.adj] = +i.value; i.previousElementSibling.textContent = (+i.value > 0 ? '+' : '') + i.value + '%'; });
+    i.addEventListener('change', () => { saveCalc(); renderCalc(); });
+  });
   document.querySelectorAll('[data-vcmode]').forEach(b => b.addEventListener('click', () => { calc.vcMode = b.dataset.vcmode; saveCalc(); renderCalc(); }));
   $('#rec-use')?.addEventListener('click', () => { calc.manual = false; saveCalc(); renderCalc(); });
 }
@@ -570,6 +583,8 @@ let ENG = null;
 
 function resultbarInner(r) {
   const u = calc.units, U = UNITS[u];
+  LAST_RPM = r.n || 0;
+  if (r.n == null && LAST_WHY) return `<div class="rb-why">${esc(LAST_WHY)}</div>`;
   return `<div><span>RPM${r.limited ? ' (max)' : ''}</span><b>${fmt(r.n, 0)}</b></div>
     <div><span>Vf (${U.vf})</span><b>${fmt(r.vf, u === 'mm' ? 0 : 2)}</b></div>
     <div><span>Q (${U.mrr})</span><b>${fmt(r.mrr, 2)}</b></div>
@@ -625,7 +640,7 @@ function engageHtml(pubAll, mat, tool, T) {
         ? '<path d="M2 10h14v12h8V10h14v16H2z" class="pi-block"/><rect x="16" y="2" width="8" height="20" class="pi-tool"/>'
         : `<path d="M2 6h${36 - o.aeX * 16}v8h${o.aeX * 16}v12H2z" class="pi-block"/><rect x="${38 - o.aeX * 16}" y="0" width="16" height="14" class="pi-tool"/>`}</svg>
       <span><b>${esc(o.label)}</b><small>${no ? `not for ${esc(String(T.catalog?.nof ?? calc.z))} flutes` : esc(o.sub)}</small></span></button>`; }).join('')}</div>
-    ${cur ? `<figure class="engage" id="engage"><div id="eng-svg" role="slider" tabindex="0" aria-label="Cutter: drag up or down for depth ap, along the arrow for width ae; arrow keys also move it"></div><figcaption id="eng-cap"></figcaption></figure>` : '<p class="muted small">Choose a toolpath to place the cutter in the part.</p>'}`;
+    ${cur ? `<div class="steppers" aria-label="Fine adjust">${cur.type === 'side' ? '<div><span>ae</span><button type="button" class="btn small" data-step-ae="-1" aria-label="Narrower">−</button><button type="button" class="btn small" data-step-ae="1" aria-label="Wider">+</button></div>' : ''}<div><span>ap</span><button type="button" class="btn small" data-step-ap="-1" aria-label="Shallower">−</button><button type="button" class="btn small" data-step-ap="1" aria-label="Deeper">+</button></div><small class="muted">steps of ${cur.type === 'side' ? '0.01 × D (ae), ' : ''}0.05 × D (ap)</small></div><figure class="engage" id="engage"><div id="eng-svg" role="slider" tabindex="0" aria-label="Cutter: drag up or down for depth ap, along the arrow for width ae; arrow keys also move it"></div><figcaption id="eng-cap"></figcaption></figure>` : '<p class="muted small">Choose a toolpath to place the cutter in the part.</p>'}`;
 }
 
 function drawEngage() {
@@ -698,7 +713,7 @@ function bindEngage(T, pubAll) {
     const dAe = p.type === 'side' ? sx / (C30 * drag.k) : 0;
     const dAp = sy / drag.k + dAe * S30;
     if (p?.type === 'side') {
-      calc.ae = snap(Math.min(D, Math.max(step, drag.ae + dAe)));
+      calc.ae = snap(Math.min(D, Math.max(0.02 * D, drag.ae + dAe)));   // a side pass keeps at least 2% of D
       calc.path = { type: 'side', aeX: calc.ae / D };
     }
     calc.ap = snap(Math.min(drag.maxAp * 1.1, Math.max(0, drag.ap + dAp)));
@@ -706,6 +721,21 @@ function bindEngage(T, pubAll) {
     if (!live.raf) live.raf = requestAnimationFrame(() => { live.raf = 0; live(); });
   });
   const end = () => { if (!drag) return; drag = null; box.classList.remove('dragging'); saveCalc(); renderCalc(); };
+  // Fine adjust buttons: one press = one step, held = repeats.
+  const stepBy = (k, d) => {
+    const p = currentPath(ENG.options);
+    if (k === 'ae') { if (p?.type !== 'side') return; calc.ae = snap(Math.min(D, Math.max(0.02 * D, (calc.ae || 0) + d * 0.01 * D))); calc.path = { type: 'side', aeX: calc.ae / D }; }
+    else calc.ap = snap(Math.max(0, (calc.ap || 0) + d * 0.05 * D));
+    live();
+  };
+  document.querySelectorAll('[data-step-ae],[data-step-ap]').forEach(b => {
+    const k = b.dataset.stepAe ? 'ae' : 'ap', d = +(b.dataset.stepAe || b.dataset.stepAp);
+    let t = null;
+    const stop = () => { clearInterval(t); t = null; saveCalc(); renderCalc(); };
+    b.addEventListener('pointerdown', e => { e.preventDefault(); stepBy(k, d); t = setInterval(() => stepBy(k, d), 120); b.setPointerCapture(e.pointerId); });
+    b.addEventListener('pointerup', stop); b.addEventListener('pointercancel', stop);
+    b.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); stepBy(k, d); saveCalc(); renderCalc(); } });
+  });
   box.addEventListener('pointerup', end); box.addEventListener('pointercancel', end);
   box.addEventListener('keydown', e => {
     const p = currentPath(ENG.options);
@@ -909,7 +939,7 @@ async function renderCatalogs() {
       <tr><th>Total loaded</th><td><b>${DATA.products.length.toLocaleString()}</b> catalog rows (each coating or shank version is its own part number)</td></tr>
     </tbody></table>
     <p><b>Not loaded:</b> ${cov.notLoaded.map(esc).join('; ')}.</p>
-    <p class="muted" style="font-size:.85rem">Read on ${esc(C.extracted)} from M.A. Ford Product Catalog Vol. 105. Every row's printed decimal size was checked against the diameter coded in its own part number${WEB ? `, and against the size in M.A. Ford's website description (checked ${esc(WEB.checked)}; ${Object.keys(WEB.tools).length.toLocaleString()} tools listed there)` : ''}. Check the catalog before ordering.</p>
+    <p class="muted" style="font-size:.85rem">Read on ${esc(C.extracted)} from M.A. Ford Product Catalog Vol. 105. Every row's printed decimal size was checked against the diameter coded in its own part number${WEB ? `, and against the size in M.A. Ford's website description (checked ${esc(WEB.checked)}; ${(WEB.toolCount || Object.keys(WEB.tools || {}).length).toLocaleString()} tools listed there)` : ''}. Check the catalog before ordering.</p>
     ${WEB ? '<p class="muted small">Product photos, drawings and material/application icons are shown directly from maford.com and remain M.A. Ford\'s. They need internet the first time; after that the app keeps them for offline use.</p>' : ''}
   </div>
   <div class="card"><h2>Available offline</h2><div id="offline">Checking…</div></div>
@@ -950,15 +980,20 @@ document.addEventListener('click', e => {
 });
 $('#proto-btn').addEventListener('click', () => $('#about').showModal());
 
+// Per-tool website descriptions (the largest website file) load only when a tool page needs them.
+function webTools() {
+  if (!webTools.p) webTools.p = fetch('data/web-tools.json').then(r => r.ok ? r.json() : {}).catch(() => ({})).then(t => (WEB.tools = t));
+  return webTools.p;
+}
 async function boot() {
   route();
   try {
     const get = n => fetch(`data/${n}.json`).then(r => { if (!r.ok) throw new Error(`${n}: ${r.status}`); return r.json(); });
-    const [products, series, catalogs] = await Promise.all([get('products'), get('series'), get('catalogs')]);
-    CUT = await get('cutting').catch(() => ({ tables: [] }));
-    // Optional website data: official images and listings, website-only series, published speeds and feeds.
-    const [web, webSeries_, webProducts, speedfeed] = await Promise.all(['web', 'web-series', 'web-products', 'speedfeed'].map(n => get(n).catch(() => null)));
-    WEB = web || { series: {}, tools: {} };
+    // All data in parallel. Optional files (website data, catalog tables) never block the app.
+    const opt = n => get(n).catch(() => null);
+    const [products, series, catalogs, cutting, web, webSeries_, webProducts, speedfeed] = await Promise.all([get('products'), get('series'), get('catalogs'), opt('cutting'), opt('web'), opt('web-series'), opt('web-products'), opt('speedfeed')]);
+    CUT = cutting || { tables: [] };
+    WEB = web || { series: {} };
     SF = speedfeed?.series || {};
     for (const [id, w] of Object.entries(webSeries_?.series || {})) {
       WEB.series[id] = { ...w, ...(WEB.series[id] || {}), speedFeedPdf: w.speedFeedPdf, description: w.description };
@@ -968,7 +1003,7 @@ async function boot() {
         series[id] = { id, doc: 'web', web: true, title: `${line || 'Series'} - Series ${id}`, line: line ? `TuffCut ${line}` : null, nof: w.nof, corners: [], features: [], notes: w.description ? [w.description] : [], pages: [], page: w.page };
       }
     }
-    if (webProducts) products.push(...webProducts.filter(p => !products.some(q => q.id === p.id)));
+    if (webProducts) { const have = new Set(products.map(p => p.id)); products.push(...webProducts.filter(p => !have.has(p.id))); }
     for (const [id, w] of Object.entries(WEB.series)) if (series[id]) series[id].webIso = [...new Set((w.materials || []).map(m => m.iso).filter(Boolean))];
     DATA = { products, series, catalogs };
     BY_ID = new Map(products.map(p => [p.id, p]));

@@ -237,3 +237,17 @@ dialog.sheet { margin: auto auto 0; width: 100%; max-width: 560px; max-height: 8
 .pub.is-out { border: 1px solid var(--bad); }
 .small-seg button { min-height: 30px; font-size: .78rem; padding: 0 .5rem; }
 .small-seg { margin-top: 4px; }
+
+/* coolant, speed/feed adjust, fine steppers, result-bar reason */
+.cool { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; }
+.chip.cool-not-possible { color: var(--bad); border-color: var(--bad); }
+.chip.cool-not-possible[aria-pressed="true"] { background: var(--err-bg); }
+.chip.cool-preferred { color: var(--ok); }
+.adj { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 6px 0; }
+.adj label { font-size: .8rem; color: var(--muted); }
+.adj input[type=range] { width: 100%; min-height: 32px; padding: 0; border: 0; accent-color: var(--accent); }
+.steppers { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; margin: 6px 0; }
+.steppers div { display: flex; align-items: center; gap: 4px; }
+.steppers span { font-weight: 700; color: var(--accent); width: 22px; text-align: right; }
+.steppers .btn { min-width: 44px; font-size: 1.2rem; touch-action: manipulation; }
+.rb-why { grid-column: 1 / -1; font-size: .9rem; font-weight: 600; text-align: center; padding: 8px 0; }
