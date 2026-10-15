@@ -549,6 +549,8 @@ function bindNumberInputs(root, rerender) {
 let CUT = { tables: [] };
 let LAST_RPM = 0, LAST_WHY = null;
 function jobType() {
+  // A side pass dragged out to the full diameter is a full slot: use the slotting table.
+  if (calc.path?.type === 'side' && calc.d > 0 && calc.ae >= calc.d - 1e-9) return 'slot';
   if (calc.path?.type) return calc.path.type;
   if (calc.ae > 0) return calc.ae >= calc.d - 1e-9 ? 'slot' : 'side';
   return null;
@@ -579,11 +581,17 @@ function applyRec(rec, T) {
   if (calc.manual) { calc.dEff = rec.dEff < T.catalog.dc - 1e-9 ? (calc.units === 'mm' ? rec.dEff * MM_PER_IN : rec.dEff) : undefined; return false; }
   // Speed and feed adjust (like the override dials in M.A. Ford's app): a percentage on top of the catalog values.
   const toM = calc.units === 'mm', vcUse = (calc.vcMode === 'interp' ? rec.vcInterp : rec.vc) * (1 + (calc.vcAdj || 0) / 100);
-  calc.speedFrom = 'vc'; calc.feedFrom = 'fz'; calc.examples = {};
+  calc.examples = {};
   calc.vc = toM ? +(vcUse * 0.3048).toFixed(1) : Math.round(vcUse);
   const fzUse = rec.fz * (1 + (calc.fzAdj || 0) / 100);
   calc.fz = toM ? +(fzUse * 25.4).toFixed(5) : +fzUse.toFixed(5);
   calc.dEff = rec.dEff < T.catalog.dc - 1e-9 ? (toM ? rec.dEff * MM_PER_IN : rec.dEff) : undefined;
+  // RPM / feed-rate entry modes show the same catalog values as RPM and Vf.
+  if (calc.speedFrom === 'n' || calc.feedFrom === 'vf') {
+    const r = compute({ ...calc, speedFrom: 'vc', feedFrom: 'fz' });
+    if (calc.speedFrom === 'n' && r.nRequested != null) calc.n = Math.round(r.nRequested);
+    if (calc.feedFrom === 'vf' && r.vf != null) calc.vf = +r.vf.toFixed(toM ? 1 : 3);
+  }
   calc.autoVals = true; calc.pubFrom = null;
   return true;
 }
