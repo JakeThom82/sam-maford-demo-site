@@ -403,7 +403,7 @@ function renderCalc(params) {
   const r = compute({ ...calc, tool: { id: tool ? tool.tool : 'your tool', d: tool ? T.d : undefined, nof: tool ? T.nof : undefined, apmx: T.apmx } });
   const num = v => v == null || v === '' || Number.isNaN(v) ? '' : String(+(+v).toFixed(6));
   const L = v => v == null || Number.isNaN(v) ? '—' : u === 'mm' ? `${fmt(v, 2)}` : (fractionInches(v) ? fractionInches(v) : decimalInches(v, 3));
-  const xD = (v, lim) => calc.d > 0 && v > 0 ? `<span class="xd${lim != null && v > lim + 1e-9 ? ' bad' : ''}">${fmt(v / calc.d, 2)} × D</span>` : '';
+  const xD = (v, lim) => calc.d > 0 && v > 0 ? `<span class="xd${lim != null && v > lim + 1e-9 ? ' bad' : ''}">${fmt(v / calc.d, 2)} × ⌀</span>` : '';
   const exFlag = k => calc.examples?.[k] ? '<span class="example-flag">Example</span>' : '';
   const input = (k, ph, opts = '') => `<input id="c-${k}" data-c="${k}" inputmode="decimal" autocomplete="off" placeholder="${esc(ph)}" value="${esc(num(calc[k]))}" ${opts}>`;
   const photo = tool && webSeries(tool.series)?.photo;
@@ -440,7 +440,7 @@ function renderCalc(params) {
     </div>
     <div class="grid2">
       <div class="field"><label for="c-ae">ae (${U.len}) <span id="xd-ae">${xD(calc.ae, calc.d)}</span></label>${input('ae', 'radial width')}</div>
-      <div class="field"><label for="c-ap">ap (${U.len}) <span id="xd-ap">${xD(calc.ap, T.apmx)}</span></label>${input('ap', 'axial depth')}</div>
+      <div class="field"><label for="c-ap">ap ↓ (${U.len}) <span id="xd-ap">${xD(calc.ap, T.apmx)}</span></label>${input('ap', 'axial depth')}</div>
     </div>
     <div class="list-actions"><button type="button" class="btn small" id="c-example">Fill example values</button><button type="button" class="btn small" id="c-reset">Clear</button></div>
     ${recCard(rec, T)}
@@ -681,7 +681,7 @@ function currentPath(options) {
     type, aeX: calc.ae / D, base, row: base?.row || null,
     apMaxX: base?.apMaxX ?? null,
     aeMaxX: type === 'side' && options.published ? Math.max(...same.map(o => o.aeX)) : 1,
-    label: type === 'slot' ? 'Full slot' : `Side pass ${fmt(calc.ae / D, 2)} × D`,
+    label: type === 'slot' ? 'Full slot' : `Side pass ${fmt(calc.ae / D, 2)} × ⌀`,
   };
 }
 
@@ -703,7 +703,7 @@ function engageHtml(pubAll, mat, tool, T) {
         ? '<path d="M2 10h14v12h8V10h14v16H2z" class="pi-block"/><rect x="16" y="2" width="8" height="20" class="pi-tool"/>'
         : `<path d="M2 6h${36 - o.aeX * 16}v8h${o.aeX * 16}v12H2z" class="pi-block"/><rect x="${38 - o.aeX * 16}" y="0" width="16" height="14" class="pi-tool"/>`}</svg>
       <span><b>${esc(o.label)}</b><small>${no ? `not for ${esc(String(T.catalog?.nof ?? calc.z))} flutes` : esc(o.sub)}</small></span></button>`; }).join('')}</div>
-    ${cur ? `<div class="steppers" aria-label="Fine adjust">${cur.type === 'side' ? '<div><span>ae</span><button type="button" class="btn small" data-step-ae="-1" aria-label="Narrower">−</button><button type="button" class="btn small" data-step-ae="1" aria-label="Wider">+</button></div>' : ''}<div><span>ap</span><button type="button" class="btn small" data-step-ap="-1" aria-label="Shallower">−</button><button type="button" class="btn small" data-step-ap="1" aria-label="Deeper">+</button></div><small class="muted">steps of ${cur.type === 'side' ? '0.01 × D (ae), ' : ''}0.05 × D (ap)</small></div><figure class="engage" id="engage"><div id="eng-svg" role="slider" tabindex="0" aria-label="Cutter: drag up or down for depth ap, along the arrow for width ae; arrow keys also move it"></div><figcaption id="eng-cap"></figcaption></figure>` : '<p class="muted small">Choose a toolpath to place the cutter in the part.</p>'}`;
+    ${cur ? `<div class="steppers" aria-label="Fine adjust">${cur.type === 'side' ? '<div><span>ae</span><button type="button" class="btn small" data-step-ae="-1" aria-label="Narrower">−</button><button type="button" class="btn small" data-step-ae="1" aria-label="Wider">+</button></div>' : ''}<div><span>ap ↓</span><button type="button" class="btn small" data-step-ap="-1" aria-label="Shallower">−</button><button type="button" class="btn small" data-step-ap="1" aria-label="Deeper">+</button></div><small class="muted">steps of ${cur.type === 'side' ? '0.01 × ⌀ (ae), ' : ''}0.05 × ⌀ (ap)</small></div><figure class="engage" id="engage"><div id="eng-svg" role="slider" tabindex="0" aria-label="Cutter: drag up or down for depth ap, along the arrow for width ae; arrow keys also move it"></div><figcaption id="eng-cap"></figcaption></figure>` : '<p class="muted small">Choose a toolpath to place the cutter in the part.</p>'}`;
 }
 
 function drawEngage() {
@@ -727,14 +727,14 @@ function drawEngage() {
   ENG.bad = bad;
   box.innerHTML = isoScene({ D, ae: p.type === 'slot' ? D : Math.min(ae, D), ap, loc, type: p.type, bad, axes: p.type === 'slot' ? 'v' : 'both' });
   const unit = calc.units === 'mm' ? 'mm' : 'in';
-  const xd = (v, lim) => `<b class="${lim != null && v > lim + 1e-9 ? 'bad' : ''}">${fmt(v / D, 2)} × D</b>`;
+  const xd = (v, lim) => `<b class="${lim != null && v > lim + 1e-9 ? 'bad' : ''}">${fmt(v / D, 2)} × ⌀</b>`;
   const apLim = Math.min(loc ?? Infinity, apMax ?? Infinity);
   const okMsg = ap > 0 ? [apMax ? `depth within M.A. Ford's ${esc(p.row.ap)}` : loc ? 'depth within the flute length' : null,
     p.type === 'side' && options.published ? `width within M.A. Ford's ${esc(p.row?.ae || '')}` : null,
     fullWidth && slot.why ? slot.why : null].filter(Boolean).join(' · ') : '';
-  document.getElementById('eng-cap').innerHTML = `${p.type === 'side' && fullWidth ? 'Side pass at full width (a full slot)' : esc(p.label)} · ae ${fmt(ae, ae < 0.01 ? 4 : 3)} ${unit} ${xd(ae, p.type === 'side' ? aeMax : D)} · ap ${fmt(ap, ap < 0.01 ? 4 : 3)} ${unit} ${xd(ap, apLim === Infinity ? null : apLim)}<br>
+  document.getElementById('eng-cap').innerHTML = `${p.type === 'side' && fullWidth ? 'Side pass at full width (a full slot)' : esc(p.label)} · ae ${fmt(ae, ae < 0.01 ? 4 : 3)} ${unit} ${xd(ae, p.type === 'side' ? aeMax : D)} · ap ↓ ${fmt(ap, ap < 0.01 ? 4 : 3)} ${unit} ${xd(ap, apLim === Infinity ? null : apLim)}<br>
     ${bad ? `<span class="bad">${checks.join(' · ')}</span>` : ap > 0 ? `<span class="good">In parameters: ${okMsg}</span>` : '<span class="muted">Drag the cutter down into the part</span>'}
-    <br><span class="muted small">${p.type === 'slot' ? 'A full slot is 1 × D wide: drag up or down for depth.' : 'Drag up or down for depth (ap), along the slanted arrow for width (ae).'}</span>`;
+    <br><span class="muted small">${p.type === 'slot' ? 'A full slot is 1 × ⌀ wide: drag up or down for depth.' : 'Drag up or down for depth (ap), along the slanted arrow for width (ae).'}</span>`;
 }
 
 function bindEngage(T, pubAll) {
@@ -755,7 +755,7 @@ function bindEngage(T, pubAll) {
     for (const k of ['ae', 'ap']) {
       const el = document.getElementById('c-' + k); if (el) el.value = calc[k] ? String(+calc[k].toFixed(4)) : '';
       const lim = k === 'ae' ? D : loc, x = document.getElementById('xd-' + k);
-      if (x && calc[k] > 0) x.innerHTML = `<span class="xd${lim != null && calc[k] > lim + 1e-9 ? ' bad' : ''}">${fmt(calc[k] / D, 2)} × D</span>`;
+      if (x && calc[k] > 0) x.innerHTML = `<span class="xd${lim != null && calc[k] > lim + 1e-9 ? ' bad' : ''}">${fmt(calc[k] / D, 2)} × ⌀</span>`;
     }
     const r = compute({ ...calc, tool: { id: T.catalog ? T.catalog.tool : 'your tool', d: T.catalog ? T.d : undefined, nof: T.catalog ? T.nof : undefined, apmx: T.apmx } });
     const bar = document.getElementById('resultbar'); if (bar) bar.innerHTML = resultbarInner(r);
@@ -927,7 +927,7 @@ function openMaterialSheet() {
 
 function openPresetSheet() {
   sheet('Engagement presets', `<p class="muted small">Pick an engagement (radial ae × axial ap, as multiples of the diameter). This only fills ae and ap; it is not a recommendation for any tool or material.</p>
-    <div class="preset-grid">${ENGAGEMENT_PRESETS.map(([ae, ap]) => `<button type="button" data-ae="${ae}" data-ap="${ap}"><svg viewBox="0 0 60 60" aria-hidden="true"><rect x="8" y="${50 - Math.min(ap, 2) * 20}" width="${30 + Math.min(ae, 1) * 14}" height="${Math.min(ap, 2) * 20}" fill="var(--block)"/><rect x="38" y="${50 - Math.min(ap, 2) * 20}" width="${Math.min(ae, 1) * 14}" height="${Math.min(ap, 2) * 20}" fill="var(--good)"/><rect x="38" y="4" width="14" height="46" fill="none" stroke="var(--muted)"/></svg><span>ae ${ae} × D<br>ap ${ap} × D</span></button>`).join('')}</div>
+    <div class="preset-grid">${ENGAGEMENT_PRESETS.map(([ae, ap]) => `<button type="button" data-ae="${ae}" data-ap="${ap}"><svg viewBox="0 0 60 60" aria-hidden="true"><rect x="8" y="${50 - Math.min(ap, 2) * 20}" width="${30 + Math.min(ae, 1) * 14}" height="${Math.min(ap, 2) * 20}" fill="var(--block)"/><rect x="38" y="${50 - Math.min(ap, 2) * 20}" width="${Math.min(ae, 1) * 14}" height="${Math.min(ap, 2) * 20}" fill="var(--good)"/><rect x="38" y="4" width="14" height="46" fill="none" stroke="var(--muted)"/></svg><span>ae ${ae} × ⌀<br>ap ${ap} × ⌀</span></button>`).join('')}</div>
     ${!(calc.d > 0) ? '<p class="note warn">Enter a tool diameter first.</p>' : ''}`,
   d => d.querySelectorAll('[data-ae]').forEach(b => b.addEventListener('click', () => {
     if (!(calc.d > 0)) return;
