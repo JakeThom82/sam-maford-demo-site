@@ -914,16 +914,6 @@ function renderSaved() {
 }
 
 // ---------- Catalogs ----------
-let installPrompt = null;
-window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; });
-async function offlineStatus() {
-  if (!('caches' in window) || !navigator.serviceWorker) return { app: false, data: false, reason: 'This browser does not support offline storage for websites.' };
-  try {
-    const app = !!(await caches.match(new URL('index.html', location.href).href));
-    const data = !!(await caches.match(new URL('data/products.json', location.href).href));
-    return { app, data };
-  } catch { return { app: false, data: false, reason: 'Offline storage is blocked in this browser mode.' }; }
-}
 async function renderCatalogs() {
   const C = DATA.catalogs, cov = C.coverage;
   const doc = k => C.documents[k];
@@ -940,35 +930,17 @@ async function renderCatalogs() {
     </tbody></table>
     <p><b>Not loaded:</b> ${cov.notLoaded.map(esc).join('; ')}.</p>
     <p class="muted" style="font-size:.85rem">Read on ${esc(C.extracted)} from M.A. Ford Product Catalog Vol. 105. Every row's printed decimal size was checked against the diameter coded in its own part number${WEB ? `, and against the size in M.A. Ford's website description (checked ${esc(WEB.checked)}; ${(WEB.toolCount || Object.keys(WEB.tools || {}).length).toLocaleString()} tools listed there)` : ''}. Check the catalog before ordering.</p>
-    ${WEB ? '<p class="muted small">Product photos, drawings and material/application icons are shown directly from maford.com and remain M.A. Ford\'s. They need internet the first time; after that the app keeps them for offline use.</p>' : ''}
+    ${WEB ? '<p class="muted small">Product photos, drawings and material/application icons are shown directly from maford.com and remain M.A. Ford\'s.</p>' : ''}
   </div>
-  <div class="card"><h2>Available offline</h2><div id="offline">Checking…</div></div>
   <div class="card"><h2>Catalog PDFs</h2>
-    <p class="muted" style="font-size:.85rem">These open on maford.com and need internet. This app never downloads them by itself. To keep one for offline reading, open it and use your browser's Share or Download to save it to Files.</p>
+    <p class="muted" style="font-size:.85rem">These open on maford.com. This demo never downloads them.</p>
     ${['gp', 'hp', 'master'].map(k => `<div style="margin:.6rem 0"><b>${esc(doc(k).title)}</b><br><small class="muted">${(doc(k).bytes / 1e6).toFixed(0)} MB${doc(k).pages ? ` · ${doc(k).pages} pages` : ''}${k === 'master' ? ' · very large: use Wi-Fi' : ''}</small><br><a class="ext" href="${esc(doc(k).url)}" target="_blank" rel="noopener">Open PDF</a></div>`).join('')}
     <p><a class="ext" href="https://www.maford.com/Page/Catalog_Sections.aspx?nt=40" target="_blank" rel="noopener">All M.A. Ford catalog sections</a></p>
   </div>
-  <div class="card"><h2>Install</h2>
-    <p>On iPhone or iPad: open this page in Safari, tap Share, then <b>Add to Home Screen</b>. On Android or desktop Chrome/Edge: use the browser menu's <b>Install app</b>${installPrompt ? ' or the button below' : ''}.</p>
-    ${installPrompt ? '<button type="button" class="btn primary" id="install">Install app</button>' : ''}
-  </div>
   <div class="card"><h2>About</h2>
-    <p>Independent prototype for discussion. Not an M.A. Ford product, and not endorsed by M.A. Ford. <span class="muted small" id="app-version"></span> M.A. Ford's own calculator app: <a class="ext" href="https://apps.apple.com/us/app/m-a-ford-machining-calculator/id1554634640" target="_blank" rel="noopener">App Store</a>.</p>
+    <p>Independent prototype for discussion. Not an M.A. Ford product, and not endorsed by M.A. Ford. Online only: nothing is installed or saved for offline use. <span class="muted small" id="app-version"></span> M.A. Ford's own calculator app: <a class="ext" href="https://apps.apple.com/us/app/m-a-ford-machining-calculator/id1554634640" target="_blank" rel="noopener">App Store</a>.</p>
   </div>`;
-  fetch('sw.js').then(r => r.text()).then(t => { const v = (t.match(/VERSION = '([0-9a-f]+)'/) || [])[1]; const el = $('#app-version'); if (v && el) el.textContent = 'App version ' + v + '.'; }).catch(() => {});
-  $('#install')?.addEventListener('click', async () => { installPrompt.prompt(); await installPrompt.userChoice.catch(() => {}); installPrompt = null; renderCatalogs(); });
-  let st = await offlineStatus();
-  // On a first visit the service worker may still be saving files: check again once it is ready.
-  if (!st.reason && !(st.app && st.data) && navigator.serviceWorker) {
-    await Promise.race([navigator.serviceWorker.ready, new Promise(r => setTimeout(r, 8000))]);
-    st = await offlineStatus();
-  }
-  const el = $('#offline'); if (!el) return;
-  el.innerHTML = st.reason ? `<p class="note warn">${esc(st.reason)}</p>` : `<ul>
-    <li>${st.app ? '✓' : '…'} App screens ${st.app ? 'saved for offline use' : 'not saved yet (reload once while online)'}</li>
-    <li>${st.data ? '✓' : '…'} ${DATA.products.length.toLocaleString()} end-mill records ${st.data ? 'saved for offline use' : 'not saved yet'}</li>
-    <li>✓ Calculator and saved setups work offline</li>
-    <li>✗ Catalog PDFs and maford.com links need internet</li></ul>`;
+  fetch('version.json', { cache: 'no-store' }).then(r => r.json()).then(j => { const el = $('#app-version'); if (j.version && el) el.textContent = 'App version ' + j.version + '.'; }).catch(() => {});
 }
 
 // ---------- startup ----------
@@ -1010,13 +982,10 @@ async function boot() {
     SERIES_IDS = Object.keys(series).sort((a, b) => series[a].doc.localeCompare(series[b].doc) || a.localeCompare(b, 'en', { numeric: true }));
     route();
   } catch (e) {
-    view.innerHTML = `<div class="card"><h1>Could not load the catalog data</h1><p>${esc(e.message)}</p><p>If you are offline, open the app once while online so it can save the data.</p></div>`;
+    view.innerHTML = `<div class="card"><h1>Could not load the catalog data</h1><p>${esc(e.message)}</p><p>Check the internet connection and reload. This demo works online only.</p></div>`;
   }
-  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-    const hadController = !!navigator.serviceWorker.controller;
-    // A new version was published: reload once so the phone runs it straight away.
-    navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController && !boot.reloaded) { boot.reloaded = true; location.reload(); } });
-    navigator.serviceWorker.register('sw.js').then(r => r.update()).catch(() => {});
-  }
+  // Online only (no offline copy): remove any service worker and saved files from earlier versions.
+  if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister())).catch(() => {});
+  if ('caches' in window) caches.keys().then(ks => ks.filter(k => k.startsWith('sam-maford-')).forEach(k => caches.delete(k))).catch(() => {});
 }
 boot();
