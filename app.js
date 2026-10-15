@@ -6,6 +6,7 @@ import * as setups from './lib/setups.js';
 import { MATERIALS, OPERATIONS, ENGAGEMENT_PRESETS, ISO_COLORS, ISO_NAMES, materialById } from './lib/materials.js';
 import { guide } from './lib/guide.js';
 import { published } from './lib/published.js';
+import { recommend } from './lib/recommend.js';
 import { isoScene, isoScale, toolpathOptions } from './lib/iso.js';
 
 const view = document.getElementById('view');
@@ -342,6 +343,7 @@ function renderCalc(params) {
   const s = tool ? DATA.series[tool.series] : null;
   const mat = materialById(calc.material);
   const op = OPERATIONS.find(o => o.id === calc.op);
+  const rec = catalogRec(T, mat); applyRec(rec, T);
   const r = compute({ ...calc, tool: { id: tool ? tool.tool : 'your tool', d: tool ? T.d : undefined, nof: tool ? T.nof : undefined, apmx: T.apmx } });
   const num = v => v == null || v === '' || Number.isNaN(v) ? '' : String(+(+v).toFixed(6));
   const L = v => v == null || Number.isNaN(v) ? '—' : u === 'mm' ? `${fmt(v, 2)}` : (fractionInches(v) ? fractionInches(v) : decimalInches(v, 3));
@@ -385,9 +387,10 @@ function renderCalc(params) {
       <div class="field"><label for="c-ap">ap (${U.len}) <span id="xd-ap">${xD(calc.ap, T.apmx)}</span></label>${input('ap', 'axial depth')}</div>
     </div>
     <div class="list-actions"><button type="button" class="btn small" id="c-example">Fill example values</button><button type="button" class="btn small" id="c-reset">Clear</button></div>
+    ${recCard(rec, T)}
     ${publishedCard(pub, tool, mat, sfPdf)}
     ${tool && cutPages.length && !pub?.rows?.length ? `<p class="muted small">M.A. Ford publishes starting speeds and feeds for Series ${esc(tool.series)} on catalog pages ${cutPages.join(', ')}${mat ? ` (look for ${esc(mat.name.toLowerCase())})` : ''}. ${catalogLink(tool.doc, s.cuttingData[0].pdfPage, 'Open page ' + cutPages[0])}</p>` : ''}
-    <p class="muted small">${pub?.rows?.length ? 'Vc and fz are yours to set: use M.A. Ford\'s published values above, or your own.' : 'Vc and fz are yours to enter. M.A. Ford\'s published values appear here when their data sheet for this series has been read.'} Example values only show the maths.</p>
+    <p class="muted small">${rec && !rec.none && !rec.needPath ? (calc.manual ? 'You typed your own Vc or fz; the catalog values are shown above for comparison.' : 'Vc and fz come from M.A. Ford\'s catalog table above and follow the cutter as you drag it. Type a value to use your own.') : pub?.rows?.length ? 'Vc and fz are yours to set: use M.A. Ford\'s published values above, or your own.' : 'Vc and fz are yours to enter when M.A. Ford\'s table for this tool and material has not been read.'}</p>
   </div>
 
   ${r.errors.length ? `<div class="note err"><ul>${r.errors.map(e => `<li>${esc(e)}</li>`).join('')}</ul></div>` : ''}
@@ -416,6 +419,8 @@ function renderCalc(params) {
   <div class="resultbar" id="resultbar" aria-live="polite">${resultbarInner(r)}</div>`;
   bindEngage(T, mat ? pubAll : null);
   bindPublished(pub, T);
+  bindRec();
+  markOut(rec);
 
   // Tool sheet / material sheet / presets
   $('#c-tool').addEventListener('click', openToolSheet);
@@ -473,12 +478,87 @@ function bindNumberInputs(root, rerender) {
     else if (['d', 'ae', 'ap', 'l2', 're'].includes(k)) { const P = parseLength(raw, u); v = P ? +(u === 'mm' ? P.in * MM_PER_IN : P.in).toFixed(6) : (k === 're' && /^0*\.?0*$/.test(raw) ? 0 : NaN); }
     else v = /^[-+]?(\d+\.?\d*|\.\d+)$/.test(raw) ? parseFloat(raw) : NaN;
     calc[k] = v; if (calc.examples) delete calc.examples[k];
-    if (['vc', 'n', 'fz', 'vf'].includes(k)) calc.pubFrom = null; // typed by the user: theirs to keep
+    if (['vc', 'n', 'fz', 'vf'].includes(k)) { calc.pubFrom = null; calc.manual = true; calc.autoVals = false; } // typed by the user: theirs to keep
     i.setAttribute('aria-invalid', Number.isNaN(v) ? 'true' : 'false');
     saveCalc();
     clearTimeout(bindNumberInputs.t);
     bindNumberInputs.t = setTimeout(() => { const pos = i.selectionStart; rerender(); const el = document.getElementById('c-' + k); if (el) { el.focus({ preventScroll: true }); if (el.value !== raw) el.value = raw; try { el.setSelectionRange(pos, pos); } catch {} } }, 400);
   }));
+}
+
+// ---------- M.A. Ford catalog recommendation: automatic speeds and feeds ----------
+// For a catalog tool with a material and a toolpath, Vc and fz come from the catalog's
+// recommended-cutting-data table (lib/recommend.js) and update as the cutter is dragged. Typing your
+// own Vc or fz switches to manual until "Use M.A. Ford values" is tapped.
+let CUT = { tables: [] };
+function jobType() {
+  if (calc.path?.type) return calc.path.type;
+  if (calc.ae > 0) return calc.ae >= calc.d - 1e-9 ? 'slot' : 'side';
+  return null;
+}
+function catalogRec(T, mat) {
+  const tool = T.catalog;
+  if (!tool || !mat || SF[tool.series]?.tables?.length) return null;   // website sheet (e.g. XAL5R) is used instead
+  const type = jobType(); if (!type) return { needPath: true };
+  const f = calc.units === 'mm' ? 1 / MM_PER_IN : 1;
+  const rec = recommend({ tool, materialId: mat.id, materialIso: mat.iso, type, ae: (type === 'slot' ? calc.d : calc.ae || 0) * f, ap: (calc.ap || 0) * f, finishing: calc.op === 'finish' }, CUT.tables, DATA.series);
+  if (rec?.none && !rec.noRow) {
+    // The catalog lists cutting-data pages for this series that this demo has not read yet.
+    const base = [tool.series, tool.series.replace(/N$/, ''), tool.series.replace(/C$/, '')].find(id => DATA.series[id]?.cuttingData?.length);
+    const pages = (DATA.series[base]?.cuttingData || []).filter(c => type === 'slot' ? /slot/i.test(c.title) : !/slot/i.test(c.title)).map(c => c.page);
+    if (pages.length) { rec.unread = pages; rec.noSlot = false; rec.why = `M.A. Ford publishes ${type === 'slot' ? 'slotting' : 'cutting'} data for Series ${base} on catalog page${pages.length > 1 ? 's' : ''} ${pages.join(', ')}; this demo has not read that table yet.`; }
+  }
+  return rec;
+}
+// Put the recommendation into the calculator (unless the user typed their own values).
+function applyRec(rec, T) {
+  const key = T.catalog && materialById(calc.material) ? `${T.catalog.id}|${calc.material}` : null;
+  if (calc.recKey !== key) { calc.recKey = key; calc.manual = false; }
+  const usable = rec && !rec.none && !rec.needPath && rec.vc != null && rec.fz != null;
+  if (!usable) {
+    if (calc.autoVals) { calc.vc = calc.fz = undefined; calc.dEff = undefined; calc.autoVals = false; }
+    return false;
+  }
+  if (calc.manual) { calc.dEff = rec.dEff < T.catalog.dc - 1e-9 ? (calc.units === 'mm' ? rec.dEff * MM_PER_IN : rec.dEff) : undefined; return false; }
+  const toM = calc.units === 'mm', vcUse = calc.vcMode === 'interp' ? rec.vcInterp : rec.vc;
+  calc.speedFrom = 'vc'; calc.feedFrom = 'fz'; calc.examples = {};
+  calc.vc = toM ? +(vcUse * 0.3048).toFixed(1) : Math.round(vcUse);
+  calc.fz = toM ? +(rec.fz * 25.4).toFixed(4) : +rec.fz.toFixed(5);
+  calc.dEff = rec.dEff < T.catalog.dc - 1e-9 ? (toM ? rec.dEff * MM_PER_IN : rec.dEff) : undefined;
+  calc.autoVals = true; calc.pubFrom = null;
+  return true;
+}
+function markOut(rec) {
+  const out = !!(ENG?.bad || rec?.checks?.length || rec?.noRow);
+  document.getElementById('resultbar')?.classList.toggle('is-out', out);
+  const cut = document.querySelector('.cut-card'); if (cut) cut.classList.toggle('is-out', out);
+}
+function recCard(rec, T) {
+  if (!rec || !T.catalog) return '';
+  if (rec.needPath) return '<p class="note info small">Choose a toolpath above: speeds and feeds then come from M.A. Ford\'s catalog for this tool and material.</p>';
+  const s = T.catalog.series;
+  if (rec.none) return `<div class="note ${rec.unread ? 'info' : 'err'} small">${esc(rec.why)}${rec.unread ? ' Enter your own Vc and fz for now.' : ''}</div>`;
+  const u = calc.units, toM = u === 'mm';
+  const vTxt = v => v == null ? '—' : toM ? `${fmt(v * 0.3048, 0)} m/min` : `${fmt(v, 0)} SFM`;
+  const fTxt = v => v == null ? '—' : toM ? `${fmt(v * 25.4, 4)} mm` : `${v < 1 ? v.toFixed(4).replace(/^0/, '') : v}"`;
+  const interp = rec.vcInterp != null && Math.abs(rec.vcInterp - rec.vc) > 0.5;
+  return `<div class="pub card-inset${rec.checks.length ? ' is-out' : ''}">
+    <h3>M.A. Ford catalog recommendation ${calc.manual ? '<span class="tag">your values in use</span>' : '<span class="tag ok">in use</span>'}</h3>
+    <dl class="kv small">
+      <dt>Vc</dt><dd><b>${vTxt(calc.vcMode === 'interp' ? rec.vcInterp : rec.vc)}</b> · ${rec.kind === 'ap' ? 'ap' : 'ae'} ${fmt(rec.pct, 0)}% of D → ${calc.vcMode === 'interp' && interp ? 'interpolated between columns' : `${rec.vcColumn}% column (next wider)`}
+        ${interp ? `<div class="seg small-seg" role="group" aria-label="Speed from"><button type="button" data-vcmode="col" aria-pressed="${calc.vcMode !== 'interp'}">Printed ${vTxt(rec.vc)}</button><button type="button" data-vcmode="interp" aria-pressed="${calc.vcMode === 'interp'}">Interpolated ${vTxt(rec.vcInterp)}</button></div>` : ''}</dd>
+      <dt>fz</dt><dd><b>${fTxt(rec.fz)}</b> · ${fTxt(rec.fzBase)} (${esc(rec.fzColumn)}" column${T.catalog.dc - rec.diameterIn > 1e-3 ? ', next smaller' : ''})${rec.factor !== 1 ? ` × ${rec.factor} chip thinning` : rec.finishing ? ' · finishing: standard fz, no chip thinning' : ''}</dd>
+      ${rec.dEff < T.catalog.dc - 1e-9 ? `<dt>Ball</dt><dd>effective diameter ${fmt(toM ? rec.dEff * 25.4 : rec.dEff, 4)} ${u} at this depth</dd>` : ''}
+      <dt>Source</dt><dd>Catalog page ${esc(rec.source.page)}${rec.source.via && rec.source.via !== 'general-purpose' ? ` (Series ${esc(rec.source.via)} table, used for ${esc(s)})` : rec.source.via === 'general-purpose' ? ' (general-purpose end mill table)' : ''} · ${esc(rec.source.row)} ${catalogLink(rec.source.doc, rec.source.pdfPage, 'Open page')}</dd>
+    </dl>
+    ${rec.notes.length ? `<p class="muted small">${rec.notes.map(esc).join(' ')}</p>` : ''}
+    ${rec.checks.length ? `<div class="note err small"><b>Out of M.A. Ford's spec</b><ul>${rec.checks.map(c => `<li>${esc(c)}</li>`).join('')}</ul></div>` : ''}
+    ${calc.manual ? '<button type="button" class="btn small primary" id="rec-use">Use M.A. Ford values</button>' : ''}
+  </div>`;
+}
+function bindRec() {
+  document.querySelectorAll('[data-vcmode]').forEach(b => b.addEventListener('click', () => { calc.vcMode = b.dataset.vcmode; saveCalc(); renderCalc(); }));
+  $('#rec-use')?.addEventListener('click', () => { calc.manual = false; saveCalc(); renderCalc(); });
 }
 
 // ---------- toolpath and cut (isometric; pick a suggested toolpath, drag the cutter for depth) ----------
@@ -563,7 +643,10 @@ function drawEngage() {
     loc && ap > loc + 1e-9 && 'Deeper than the flute length',
     apMax && ap > apMax + 1e-9 && `Deeper than M.A. Ford's published ${esc(p.row.application.toLowerCase())} depth (${esc(p.row.ap)})`,
   ].filter(Boolean);
+  if (ENG.rec?.checks?.length) checks.push(...ENG.rec.checks.map(esc));
+  if (ENG.rec?.noRow) checks.push(esc(ENG.rec.why));
   const bad = checks.length > 0;
+  ENG.bad = bad;
   box.innerHTML = isoScene({ D, ae: p.type === 'slot' ? D : Math.min(ae, D), ap, loc, type: p.type, bad, axes: p.type === 'slot' ? 'v' : 'both' });
   const unit = calc.units === 'mm' ? 'mm' : 'in';
   const xd = (v, lim) => `<b class="${lim != null && v > lim + 1e-9 ? 'bad' : ''}">${fmt(v / D, 2)} × D</b>`;
@@ -581,11 +664,13 @@ function bindEngage(T, pubAll) {
   const box = document.getElementById('eng-svg'); if (!box) return;
   const D = calc.d, loc = T.apmx > 0 ? T.apmx : null;
   const options = toolpathOptions(pubAll?.rows?.length ? pubAll.rows : null);
-  ENG = { D, loc, options, slot: slotCheck(T, pubAll) };
+  ENG = { D, loc, options, slot: slotCheck(T, pubAll), T, rec: catalogRec(T, materialById(calc.material)) };
   drawEngage();
   const step = calc.units === 'mm' ? 0.01 : 0.001;
   const snap = v => Math.round(v / step) * step;
   const live = () => {
+    ENG.rec = catalogRec(T, materialById(calc.material));
+    if (applyRec(ENG.rec, T)) for (const k of ['vc', 'fz']) { const el = document.getElementById('c-' + k); if (el) el.value = String(calc[k]); }
     drawEngage();
     for (const k of ['ae', 'ap']) {
       const el = document.getElementById('c-' + k); if (el) el.value = calc[k] ? String(+calc[k].toFixed(4)) : '';
@@ -594,6 +679,7 @@ function bindEngage(T, pubAll) {
     }
     const r = compute({ ...calc, tool: { id: T.catalog ? T.catalog.tool : 'your tool', d: T.catalog ? T.d : undefined, nof: T.catalog ? T.nof : undefined, apmx: T.apmx } });
     const bar = document.getElementById('resultbar'); if (bar) bar.innerHTML = resultbarInner(r);
+    markOut(ENG.rec);
   };
   // Isometric axes on screen: more ae moves the cutter up-right along the slanted arrow
   // (cos30, -sin30); more ap moves it straight down.
@@ -869,6 +955,7 @@ async function boot() {
   try {
     const get = n => fetch(`data/${n}.json`).then(r => { if (!r.ok) throw new Error(`${n}: ${r.status}`); return r.json(); });
     const [products, series, catalogs] = await Promise.all([get('products'), get('series'), get('catalogs')]);
+    CUT = await get('cutting').catch(() => ({ tables: [] }));
     // Optional website data: official images and listings, website-only series, published speeds and feeds.
     const [web, webSeries_, webProducts, speedfeed] = await Promise.all(['web', 'web-series', 'web-products', 'speedfeed'].map(n => get(n).catch(() => null)));
     WEB = web || { series: {}, tools: {} };
