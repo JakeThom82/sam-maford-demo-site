@@ -371,7 +371,7 @@ function renderCalc(params) {
 
   <div class="ops chips" role="group" aria-label="Operation">${OPERATIONS.map(o => `<button type="button" class="chip" data-op="${o.id}" aria-pressed="${calc.op === o.id}">${esc(o.name)}</button>`).join('')}</div>
 
-  <div class="card cut-card"><h2>Toolpath <small class="muted">· drag the cutter for depth</small></h2>${engageHtml(pubAll, mat, tool)}</div>
+  <div class="card cut-card"><h2>Toolpath <small class="muted">· drag the cutter: width (ae) and depth (ap)</small></h2>${engageHtml(pubAll, mat, tool, T)}</div>
 
   <div class="card">
     <div class="row" style="justify-content:space-between;margin-bottom:6px"><h2 style="margin:0">Speed &amp; feed</h2>
@@ -496,48 +496,84 @@ function resultbarInner(r) {
     ${r.limited ? `<div class="rb-note">${fmt(r.vc, u === 'mm' ? 1 : 0)} ${U.vc} at max RPM</div>` : calc.speedFrom === 'n' && r.vc != null ? `<div class="rb-note">${fmt(r.vc, u === 'mm' ? 1 : 0)} ${U.vc}</div>` : calc.feedFrom === 'vf' && r.fz != null ? `<div class="rb-note">fz ${fmt(r.fz, 5)}</div>` : ''}`;
 }
 
-// The toolpath currently set: the chosen option, or one inferred from typed ae/ap.
-function currentPath(options) {
-  const D = calc.d;
-  if (calc.path) {
-    const o = options.opts.find(o => o.type === calc.path.type && Math.abs(o.aeX - calc.path.aeX) < 1e-9);
-    if (o && calc.ae > 0 && Math.abs(calc.ae - o.aeX * D) < 1e-6 * Math.max(1, D)) return o;
-  }
-  return null;
+// Can this tool take a full slot? M.A. Ford's published slotting data for the tool's series decides
+// first (website speed-and-feed sheet or catalog slotting tables). Without it, Jake's rule: 4 flutes
+// or fewer can slot; 5 or more pack chips in a full slot (M.A. Ford's troubleshooting table: chip
+// packing -> use an end mill with fewer flutes).
+const SLOT_MAX_FLUTES = 4;
+function slotCheck(T, pubAll) {
+  const z = T.catalog ? T.catalog.nof : calc.z;
+  const s = T.catalog ? DATA.series[T.catalog.series] : null;
+  if (pubAll?.rows?.some(r => /slot/i.test(r.application))) return { ok: true, why: 'M.A. Ford publishes slotting data for this tool' };
+  const pages = (s?.cuttingData || []).filter(c => /slot/i.test(c.title)).map(c => c.page);
+  if (pages.length) return { ok: true, why: `M.A. Ford's catalog has slotting data for Series ${T.catalog.series} (pages ${pages.join(', ')})` };
+  if (!(z > 0)) return { ok: true, why: '' };
+  if (z <= SLOT_MAX_FLUTES) return { ok: true, why: `${z} flutes` };
+  return { ok: false, why: `${z} flutes: not for full slotting. ${T.catalog ? `M.A. Ford publishes no slotting data for Series ${T.catalog.series}, and` : 'With'} 5 or more flutes chips pack in a full slot.` };
 }
 
-function engageHtml(pubAll, mat, tool) {
-  if (!(calc.d > 0)) return '<p class="engage-empty">Pick a tool (or enter a diameter), then choose a toolpath and drag the cutter up or down for depth. It turns red when it goes too far into the part.</p><div class="list-actions"><a class="btn primary small" href="#/find">Pick a tool</a><button type="button" class="btn small" id="c-tool2">Enter my own sizes</button></div>';
+// The toolpath in use: its type, the radial width as a fraction of D, and the limits that apply.
+function currentPath(options) {
+  const D = calc.d;
+  const type = calc.path?.type || (calc.ae > 0 ? (calc.ae >= D - 1e-9 ? 'slot' : 'side') : null);
+  if (!type || !(calc.ae > 0)) return null;
+  const same = options.opts.filter(o => o.type === type);
+  const base = same.find(o => Math.abs(o.aeX - calc.ae / D) < 1e-6) || same.at(-1) || null;
+  return {
+    type, aeX: calc.ae / D, base, row: base?.row || null,
+    apMaxX: base?.apMaxX ?? null,
+    aeMaxX: type === 'side' && options.published ? Math.max(...same.map(o => o.aeX)) : 1,
+    label: type === 'slot' ? 'Full slot' : `Side pass ${fmt(calc.ae / D, 2)} × D`,
+  };
+}
+
+function engageHtml(pubAll, mat, tool, T) {
+  if (!(calc.d > 0)) return '<p class="engage-empty">Pick a tool (or enter a diameter), then choose a toolpath and drag the cutter: up and down for depth, along the arrow for width. It turns red when it goes too far into the part.</p><div class="list-actions"><a class="btn primary small" href="#/find">Pick a tool</a><button type="button" class="btn small" id="c-tool2">Enter my own sizes</button></div>';
   const options = toolpathOptions(mat && pubAll?.rows?.length ? pubAll.rows : null);
   const cur = currentPath(options);
+  const slot = slotCheck(T, pubAll);
   const intro = options.published
     ? `Toolpaths M.A. Ford publishes for this tool in ${esc(mat.name.toLowerCase())} (Speed and Feed Data, page ${esc(pubAll.page)}):`
-    : tool && pubAll?.rows && mat ? `M.A. Ford's data sheet has no row for ${esc(mat.name.toLowerCase())}; standard toolpaths, limited only by the flute length:`
-    : `Standard toolpaths${tool ? '' : ' for your tool'}, limited only by the flute length${tool && !mat && pubAll ? ' (choose the material to see M.A. Ford\'s toolpaths for this tool)' : ''}:`;
+    : tool && pubAll?.rows && mat ? `M.A. Ford's data sheet has no row for ${esc(mat.name.toLowerCase())}; standard toolpaths:`
+    : `Standard toolpaths${tool ? '' : ' for your tool'}${tool && !mat && pubAll ? ' (choose the material to see M.A. Ford\'s toolpaths for this tool)' : ''}:`;
   return `<p class="small">${intro}</p>
-    <div class="paths" role="radiogroup" aria-label="Toolpath">${options.opts.map((o, i) => `<button type="button" class="path${o.type === 'slot' ? ' slot' : ''}" role="radio" aria-checked="${cur === o}" data-path="${i}">
+    <div class="paths" role="radiogroup" aria-label="Toolpath">${options.opts.map((o, i) => {
+      const no = o.type === 'slot' && !slot.ok;
+      const on = cur && cur.type === o.type && (o.type === 'slot' || Math.abs(cur.aeX - o.aeX) < 1e-6);
+      return `<button type="button" class="path${no ? ' no' : ''}" role="radio" aria-checked="${!!on}" data-path="${i}">
       <svg viewBox="0 0 40 28" aria-hidden="true">${o.type === 'slot'
         ? '<path d="M2 10h14v12h8V10h14v16H2z" class="pi-block"/><rect x="16" y="2" width="8" height="20" class="pi-tool"/>'
         : `<path d="M2 6h${36 - o.aeX * 16}v8h${o.aeX * 16}v12H2z" class="pi-block"/><rect x="${38 - o.aeX * 16}" y="0" width="16" height="14" class="pi-tool"/>`}</svg>
-      <span><b>${esc(o.label)}</b><small>${esc(o.sub)}</small></span></button>`).join('')}</div>
-    ${cur || calc.ae > 0 ? `<figure class="engage" id="engage"><div id="eng-svg" role="slider" tabindex="0" aria-label="Cutter depth: drag up or down, or use the arrow keys"></div><figcaption id="eng-cap"></figcaption></figure>` : '<p class="muted small">Choose a toolpath to place the cutter in the part.</p>'}`;
+      <span><b>${esc(o.label)}</b><small>${no ? `not for ${esc(String(T.catalog?.nof ?? calc.z))} flutes` : esc(o.sub)}</small></span></button>`; }).join('')}</div>
+    ${cur ? `<figure class="engage" id="engage"><div id="eng-svg" role="slider" tabindex="0" aria-label="Cutter: drag up or down for depth ap, along the arrow for width ae; arrow keys also move it"></div><figcaption id="eng-cap"></figcaption></figure>` : '<p class="muted small">Choose a toolpath to place the cutter in the part.</p>'}`;
 }
 
 function drawEngage() {
   const box = document.getElementById('eng-svg'); if (!box || !ENG) return;
-  const { D, loc, opt } = ENG;
+  const { D, loc, options, slot } = ENG;
+  const p = currentPath(options); if (!p) return;
   const ae = Math.max(0, calc.ae || 0), ap = Math.max(0, calc.ap || 0);
-  const apMax = opt?.apMaxX ? opt.apMaxX * D : null;
-  const overLoc = loc && ap > loc + 1e-9, overPub = apMax && ap > apMax + 1e-9, overD = ae > D + 1e-9;
-  const bad = overLoc || overPub || overD;
-  const type = opt ? opt.type : ae >= D - 1e-9 ? 'slot' : 'side';
-  box.innerHTML = isoScene({ D, ae: Math.min(ae, D), ap, loc, type, bad });
+  const apMax = p.apMaxX ? p.apMaxX * D : null, aeMax = p.aeMaxX * D;
+  // A side pass dragged out to the full diameter is a full slot: the slot rule applies.
+  const fullWidth = p.type === 'slot' || ae >= D - 1e-9;
+  const checks = [
+    fullWidth && !slot.ok && slot.why,
+    ae > D + 1e-9 && 'Wider than the cutter',
+    p.type === 'side' && options.published && ae > aeMax + 1e-9 && `Wider than M.A. Ford's published side-pass width (${esc(p.row?.ae || '')})`,
+    loc && ap > loc + 1e-9 && 'Deeper than the flute length',
+    apMax && ap > apMax + 1e-9 && `Deeper than M.A. Ford's published ${esc(p.row.application.toLowerCase())} depth (${esc(p.row.ap)})`,
+  ].filter(Boolean);
+  const bad = checks.length > 0;
+  box.innerHTML = isoScene({ D, ae: p.type === 'slot' ? D : Math.min(ae, D), ap, loc, type: p.type, bad, axes: p.type === 'slot' ? 'v' : 'both' });
   const unit = calc.units === 'mm' ? 'mm' : 'in';
   const xd = (v, lim) => `<b class="${lim != null && v > lim + 1e-9 ? 'bad' : ''}">${fmt(v / D, 2)} × D</b>`;
-  const lim = Math.min(loc ?? Infinity, apMax ?? Infinity);
-  document.getElementById('eng-cap').innerHTML = `${opt ? esc(opt.label) : type === 'slot' ? 'Slot' : 'Side pass'} · ae ${fmt(ae, 3)} ${unit} ${xd(ae, D)} · ap ${fmt(ap, 3)} ${unit} ${xd(ap, lim === Infinity ? null : lim)}<br>
-    <span class="${bad ? 'bad' : ap > 0 ? 'good' : 'muted'}">${overD ? 'Wider than the cutter' : overLoc ? 'Deeper than the flute length' : overPub ? `Deeper than M.A. Ford's published ${esc(opt.row.application.toLowerCase())} depth (${esc(opt.row.ap)})` : ap > 0 ? (apMax ? `Within M.A. Ford's published depth (${esc(opt.row.ap)})` : 'Within the flute length') : 'Drag the cutter down into the part'}</span>
-    <br><span class="muted small">Drag the cutter up or down to change the depth.</span>`;
+  const apLim = Math.min(loc ?? Infinity, apMax ?? Infinity);
+  const okMsg = ap > 0 ? [apMax ? `depth within M.A. Ford's ${esc(p.row.ap)}` : loc ? 'depth within the flute length' : null,
+    p.type === 'side' && options.published ? `width within M.A. Ford's ${esc(p.row?.ae || '')}` : null,
+    fullWidth && slot.why ? slot.why : null].filter(Boolean).join(' · ') : '';
+  document.getElementById('eng-cap').innerHTML = `${p.type === 'side' && fullWidth ? 'Side pass at full width (a full slot)' : esc(p.label)} · ae ${fmt(ae, 3)} ${unit} ${xd(ae, p.type === 'side' ? aeMax : D)} · ap ${fmt(ap, 3)} ${unit} ${xd(ap, apLim === Infinity ? null : apLim)}<br>
+    ${bad ? `<span class="bad">${checks.join(' · ')}</span>` : ap > 0 ? `<span class="good">In parameters: ${okMsg}</span>` : '<span class="muted">Drag the cutter down into the part</span>'}
+    <br><span class="muted small">${p.type === 'slot' ? 'A full slot is 1 × D wide: drag up or down for depth.' : 'Drag up or down for depth (ap), along the slanted arrow for width (ae).'}</span>`;
 }
 
 function bindEngage(T, pubAll) {
@@ -545,35 +581,53 @@ function bindEngage(T, pubAll) {
   const box = document.getElementById('eng-svg'); if (!box) return;
   const D = calc.d, loc = T.apmx > 0 ? T.apmx : null;
   const options = toolpathOptions(pubAll?.rows?.length ? pubAll.rows : null);
-  ENG = { D, loc, opt: currentPath(options) };
+  ENG = { D, loc, options, slot: slotCheck(T, pubAll) };
   drawEngage();
   const step = calc.units === 'mm' ? 0.01 : 0.001;
   const snap = v => Math.round(v / step) * step;
   const live = () => {
     drawEngage();
-    const el = document.getElementById('c-ap'); if (el) el.value = calc.ap ? String(+calc.ap.toFixed(4)) : '';
-    const x = document.getElementById('xd-ap'); if (x && calc.ap > 0) x.innerHTML = `<span class="xd${loc != null && calc.ap > loc + 1e-9 ? ' bad' : ''}">${fmt(calc.ap / D, 2)} × D</span>`;
+    for (const k of ['ae', 'ap']) {
+      const el = document.getElementById('c-' + k); if (el) el.value = calc[k] ? String(+calc[k].toFixed(4)) : '';
+      const lim = k === 'ae' ? D : loc, x = document.getElementById('xd-' + k);
+      if (x && calc[k] > 0) x.innerHTML = `<span class="xd${lim != null && calc[k] > lim + 1e-9 ? ' bad' : ''}">${fmt(calc[k] / D, 2)} × D</span>`;
+    }
     const r = compute({ ...calc, tool: { id: T.catalog ? T.catalog.tool : 'your tool', d: T.catalog ? T.d : undefined, nof: T.catalog ? T.nof : undefined, apmx: T.apmx } });
     const bar = document.getElementById('resultbar'); if (bar) bar.innerHTML = resultbarInner(r);
   };
+  // Isometric axes on screen: more ae moves the cutter up-right along the slanted arrow
+  // (cos30, -sin30); more ap moves it straight down.
+  const C30 = Math.cos(Math.PI / 6), S30 = 0.5;
   let drag = null;
   box.addEventListener('pointerdown', e => {
-    const { k } = isoScale({ D, ap: calc.ap || 0, loc });
+    const { k, Hz } = isoScale({ D, ap: calc.ap || 0, loc });
     const rect = box.getBoundingClientRect();
-    drag = { y: e.clientY, ap: calc.ap || 0, perPx: 300 / rect.height / k, maxAp: isoScale({ D, ap: 0, loc }).Hz };
+    drag = { type: currentPath(ENG.options)?.type, x: e.clientX, y: e.clientY, ae: calc.ae || 0, ap: calc.ap || 0, ux: 340 / rect.width, uy: 300 / rect.height, k, maxAp: Hz };
     box.setPointerCapture(e.pointerId); box.classList.add('dragging'); e.preventDefault();
   });
   box.addEventListener('pointermove', e => {
     if (!drag) return;
-    calc.ap = snap(Math.min(drag.maxAp * 1.1, Math.max(0, drag.ap + (e.clientY - drag.y) * drag.perPx)));
-    delete calc.examples?.ap;
+    const sx = (e.clientX - drag.x) * drag.ux, sy = (e.clientY - drag.y) * drag.uy;
+    const p = { type: drag.type };
+    const dAe = p.type === 'side' ? sx / (C30 * drag.k) : 0;
+    const dAp = sy / drag.k + dAe * S30;
+    if (p?.type === 'side') {
+      calc.ae = snap(Math.min(D, Math.max(step, drag.ae + dAe)));
+      calc.path = { type: 'side', aeX: calc.ae / D };
+    }
+    calc.ap = snap(Math.min(drag.maxAp * 1.1, Math.max(0, drag.ap + dAp)));
+    delete calc.examples?.ae; delete calc.examples?.ap;
     if (!live.raf) live.raf = requestAnimationFrame(() => { live.raf = 0; live(); });
   });
   const end = () => { if (!drag) return; drag = null; box.classList.remove('dragging'); saveCalc(); renderCalc(); };
   box.addEventListener('pointerup', end); box.addEventListener('pointercancel', end);
   box.addEventListener('keydown', e => {
-    const d = { ArrowDown: 1, ArrowUp: -1 }[e.key]; if (!d) return; e.preventDefault();
-    calc.ap = snap(Math.max(0, (calc.ap || 0) + d * (e.shiftKey ? 0.25 : 0.05) * D)); saveCalc(); live();
+    const p = currentPath(ENG.options);
+    const m = { ArrowDown: ['ap', 1], ArrowUp: ['ap', -1], ArrowRight: ['ae', 1], ArrowLeft: ['ae', -1] }[e.key];
+    if (!m || (m[0] === 'ae' && p?.type !== 'side')) return; e.preventDefault();
+    calc[m[0]] = snap(Math.max(m[0] === 'ae' ? step : 0, Math.min(m[0] === 'ae' ? D : Infinity, (calc[m[0]] || 0) + m[1] * (e.shiftKey ? 0.25 : 0.05) * D)));
+    if (m[0] === 'ae') calc.path = { type: 'side', aeX: calc.ae / D };
+    saveCalc(); live();
   });
 }
 
@@ -589,14 +643,15 @@ function selectPath(i, T, pubAll) {
   calc.ap = +Math.min(o.apMaxX ? o.apMaxX * D : (o.type === 'slot' ? 0.5 : 1) * D, loc).toFixed(6);
   calc.op = o.type === 'slot' ? 'slot' : calc.op === 'slot' ? null : calc.op;
   delete calc.examples?.ae; delete calc.examples?.ap;
-  let msg = `${o.label}: drag the cutter for depth`;
+  const sc = slotCheck(T, pubAll);
+  let msg = o.type === 'slot' && !sc.ok ? sc.why : `${o.label}: drag the cutter for depth${o.type === 'side' ? ' and width' : ''}`;
   if (o.row && pubAll) {
     const toMetric = calc.units === 'mm' && pubAll.unit === 'in';
     calc.speedFrom = 'vc'; calc.feedFrom = 'fz'; calc.examples = {};
     calc.vc = toMetric ? +(o.row.vcRange.lo * 0.3048).toFixed(1) : o.row.vcRange.lo;
     calc.fz = toMetric ? +(o.row.fzAtD * 25.4).toFixed(4) : o.row.fzAtD;
     calc.pubFrom = pubKey(T.catalog, materialById(calc.material));
-    msg = `${o.label}: M.A. Ford ${o.row.application.toLowerCase()} values (page ${pubAll.page})`;
+    if (!(o.type === 'slot' && !sc.ok)) msg = `${o.label}: M.A. Ford ${o.row.application.toLowerCase()} values (page ${pubAll.page})`;
   }
   saveCalc(); renderCalc(); toast(msg);
 }

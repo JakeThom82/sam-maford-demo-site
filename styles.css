@@ -225,3 +225,7 @@ dialog.sheet { margin: auto auto 0; width: 100%; max-width: 560px; max-height: 8
 .iso-side { fill: #c6cdd4; stroke: #6f7a85; stroke-width: .8; }
 .iso-ghost polygon { fill-opacity: .28; stroke-dasharray: 3 2; }
 @media (prefers-color-scheme: dark) { .iso-top { fill: #56636f; } .iso-front { fill: #3b4652; } .iso-side { fill: #47535f; } }
+.iso-axis path { stroke: var(--accent); stroke-width: 2; fill: none; stroke-linecap: round; }
+.iso-axis text { font-size: 11px; font-weight: 700; fill: var(--accent); }
+.path.no { border-color: var(--bad); } .path.no small { color: var(--bad); font-weight: 600; }
+.path.no[aria-checked="true"] { background: var(--err-bg); }
