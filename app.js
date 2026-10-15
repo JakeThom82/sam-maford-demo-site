@@ -307,11 +307,19 @@ function toolInUnits(p, units) {
   return { id: p.id, d: p.dc * f, nof: p.nof, apmx: p.apmx != null ? p.apmx * f : null, lu: p.lu != null ? p.lu * f : null, re: p.re != null ? p.re * f : null };
 }
 function loadTool(p, units = calc.units) {
+  const oldD = calc.d;
   calc.toolId = p.id;
   // Metric catalog tools use their printed mm size; inch tools their decimal size.
   if (units === 'mm') calc.d = p.sys === 'mm' && p.t?.DC ? parseFloat(p.t.DC) : +(p.dc * MM_PER_IN).toFixed(4);
   else calc.d = p.dc;
   calc.z = p.nof ?? calc.z;
+  // Keep the job's engagement as multiples of the diameter when the tool size changes.
+  if (oldD > 0 && calc.d > 0 && Math.abs(oldD - calc.d) > 1e-9) {
+    if (calc.path?.type === 'slot') calc.ae = calc.d;
+    else if (calc.path?.aeX > 0) calc.ae = +(calc.path.aeX * calc.d).toFixed(5);
+    else if (calc.ae > 0) calc.ae = +(calc.ae / oldD * calc.d).toFixed(5);
+    if (calc.ap > 0) calc.ap = +(calc.ap / oldD * calc.d).toFixed(5);
+  }
 }
 
 const UNITS = { in: { len: 'in', vc: 'SFM', fz: 'in/tooth', vf: 'IPM', mrr: 'in³/min' }, mm: { len: 'mm', vc: 'm/min', fz: 'mm/tooth', vf: 'mm/min', mrr: 'cm³/min' } };
@@ -335,6 +343,8 @@ function renderCalc(params) {
     else toast('That share link could not be read.');
   }
   const u = calc.units, U = UNITS[u];
+  // A chosen toolpath always has a width (repairs a missing or zero ae before anything is calculated).
+  if (calc.path && calc.d > 0 && !(calc.ae > 0)) calc.ae = +((calc.path.type === 'slot' ? 1 : calc.path.aeX || 0.1) * calc.d).toFixed(5);
   const T = currentTool(), tool = T.catalog;
   if (calc.pubFrom && calc.pubFrom !== pubKey(tool, materialById(calc.material))) {
     // Speeds and feeds published for another series or material must not carry over.
@@ -610,6 +620,7 @@ function slotCheck(T, pubAll) {
 // The toolpath in use: its type, the radial width as a fraction of D, and the limits that apply.
 function currentPath(options) {
   const D = calc.d;
+  if (calc.path && D > 0 && !(calc.ae > 0)) calc.ae = +((calc.path.type === 'slot' ? 1 : calc.path.aeX || 0.1) * D).toFixed(5);
   const type = calc.path?.type || (calc.ae > 0 ? (calc.ae >= D - 1e-9 ? 'slot' : 'side') : null);
   if (!type || !(calc.ae > 0)) return null;
   const same = options.opts.filter(o => o.type === type);
@@ -669,7 +680,7 @@ function drawEngage() {
   const okMsg = ap > 0 ? [apMax ? `depth within M.A. Ford's ${esc(p.row.ap)}` : loc ? 'depth within the flute length' : null,
     p.type === 'side' && options.published ? `width within M.A. Ford's ${esc(p.row?.ae || '')}` : null,
     fullWidth && slot.why ? slot.why : null].filter(Boolean).join(' · ') : '';
-  document.getElementById('eng-cap').innerHTML = `${p.type === 'side' && fullWidth ? 'Side pass at full width (a full slot)' : esc(p.label)} · ae ${fmt(ae, 3)} ${unit} ${xd(ae, p.type === 'side' ? aeMax : D)} · ap ${fmt(ap, 3)} ${unit} ${xd(ap, apLim === Infinity ? null : apLim)}<br>
+  document.getElementById('eng-cap').innerHTML = `${p.type === 'side' && fullWidth ? 'Side pass at full width (a full slot)' : esc(p.label)} · ae ${fmt(ae, ae < 0.01 ? 4 : 3)} ${unit} ${xd(ae, p.type === 'side' ? aeMax : D)} · ap ${fmt(ap, ap < 0.01 ? 4 : 3)} ${unit} ${xd(ap, apLim === Infinity ? null : apLim)}<br>
     ${bad ? `<span class="bad">${checks.join(' · ')}</span>` : ap > 0 ? `<span class="good">In parameters: ${okMsg}</span>` : '<span class="muted">Drag the cutter down into the part</span>'}
     <br><span class="muted small">${p.type === 'slot' ? 'A full slot is 1 × D wide: drag up or down for depth.' : 'Drag up or down for depth (ap), along the slanted arrow for width (ae).'}</span>`;
 }
@@ -681,8 +692,10 @@ function bindEngage(T, pubAll) {
   const options = toolpathOptions(pubAll?.rows?.length ? pubAll.rows : null);
   ENG = { D, loc, options, slot: slotCheck(T, pubAll), T, rec: catalogRec(T, materialById(calc.material)) };
   drawEngage();
-  const step = calc.units === 'mm' ? 0.01 : 0.001;
-  const snap = v => Math.round(v / step) * step;
+  // Snap to 0.0001" (0.001 mm) so micro tools keep real values; never round a width to zero.
+  const step = calc.units === 'mm' ? 0.001 : 0.0001;
+  const snap = v => +(Math.round(v / step) * step).toFixed(calc.units === 'mm' ? 3 : 4);
+  const minAe = 0.02 * D;
   const live = () => {
     ENG.rec = catalogRec(T, materialById(calc.material));
     if (applyRec(ENG.rec, T)) for (const k of ['vc', 'fz']) { const el = document.getElementById('c-' + k); if (el) el.value = String(calc[k]); }
@@ -713,7 +726,7 @@ function bindEngage(T, pubAll) {
     const dAe = p.type === 'side' ? sx / (C30 * drag.k) : 0;
     const dAp = sy / drag.k + dAe * S30;
     if (p?.type === 'side') {
-      calc.ae = snap(Math.min(D, Math.max(0.02 * D, drag.ae + dAe)));   // a side pass keeps at least 2% of D
+      calc.ae = Math.max(minAe, snap(Math.min(D, Math.max(minAe, drag.ae + dAe))));   // a side pass keeps at least 2% of D
       calc.path = { type: 'side', aeX: calc.ae / D };
     }
     calc.ap = snap(Math.min(drag.maxAp * 1.1, Math.max(0, drag.ap + dAp)));
@@ -724,7 +737,7 @@ function bindEngage(T, pubAll) {
   // Fine adjust buttons: one press = one step, held = repeats.
   const stepBy = (k, d) => {
     const p = currentPath(ENG.options);
-    if (k === 'ae') { if (p?.type !== 'side') return; calc.ae = snap(Math.min(D, Math.max(0.02 * D, (calc.ae || 0) + d * 0.01 * D))); calc.path = { type: 'side', aeX: calc.ae / D }; }
+    if (k === 'ae') { if (p?.type !== 'side') return; calc.ae = Math.max(minAe, snap(Math.min(D, Math.max(minAe, (calc.ae || 0) + d * 0.01 * D)))); calc.path = { type: 'side', aeX: calc.ae / D }; }
     else calc.ap = snap(Math.max(0, (calc.ap || 0) + d * 0.05 * D));
     live();
   };
@@ -741,7 +754,7 @@ function bindEngage(T, pubAll) {
     const p = currentPath(ENG.options);
     const m = { ArrowDown: ['ap', 1], ArrowUp: ['ap', -1], ArrowRight: ['ae', 1], ArrowLeft: ['ae', -1] }[e.key];
     if (!m || (m[0] === 'ae' && p?.type !== 'side')) return; e.preventDefault();
-    calc[m[0]] = snap(Math.max(m[0] === 'ae' ? step : 0, Math.min(m[0] === 'ae' ? D : Infinity, (calc[m[0]] || 0) + m[1] * (e.shiftKey ? 0.25 : 0.05) * D)));
+    calc[m[0]] = snap(Math.max(m[0] === 'ae' ? minAe : 0, Math.min(m[0] === 'ae' ? D : Infinity, (calc[m[0]] || 0) + m[1] * (e.shiftKey ? 0.25 : 0.05) * D)));
     if (m[0] === 'ae') calc.path = { type: 'side', aeX: calc.ae / D };
     saveCalc(); live();
   });
