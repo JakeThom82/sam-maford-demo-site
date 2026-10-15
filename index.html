@@ -17,7 +17,7 @@
 </head>
 <body>
 <header class="top">
-  <a class="brand" href="#/find" aria-label="SAM tooling demo, home">
+  <a class="brand" href="#/calc" aria-label="SAM tooling demo, home">
     <span class="mark" aria-hidden="true"></span>
     <span class="brand-text"><b>SAM</b> <span>M.A. Ford tooling demo</span></span>
   </a>
@@ -28,8 +28,8 @@
 <main id="view" tabindex="-1"></main>
 
 <nav class="tabs" aria-label="Sections">
-  <a href="#/find" data-tab="find"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg><span>Find Tools</span></a>
   <a href="#/calc" data-tab="calc"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11h0M8 15h2M12 15h2M8 18h2M12 18h2M16 15v3"/></svg><span>Calculator</span></a>
+  <a href="#/find" data-tab="find"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg><span>Find Tools</span></a>
   <a href="#/saved" data-tab="saved"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg><span>Saved</span></a>
   <a href="#/catalogs" data-tab="catalogs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5c3-1.5 5.5-1.5 8 0v15c-2.5-1.5-5-1.5-8 0zM20 5c-3-1.5-5.5-1.5-8 0v15c2.5-1.5 5-1.5 8 0z"/></svg><span>Catalogs</span></a>
 </nav>
@@ -43,6 +43,7 @@
     <button class="btn primary" value="close">Close</button>
   </form>
 </dialog>
+<dialog id="sheet" class="sheet" aria-label="Options"></dialog>
 <div id="toast" role="status" aria-live="polite"></div>
 <script type="module" src="app.js"></script>
 </body>

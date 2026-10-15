@@ -3,6 +3,8 @@ import { parseLength, fractionInches, decimalInches, mm as toMm, MM_PER_IN } fro
 import { parseQuery, search, ISO_GROUPS } from './lib/search.js';
 import { compute, convert, fmt } from './lib/calc.js';
 import * as setups from './lib/setups.js';
+import { MATERIALS, OPERATIONS, ENGAGEMENT_PRESETS, ISO_COLORS, ISO_NAMES, materialById } from './lib/materials.js';
+import { guide } from './lib/guide.js';
 
 const view = document.getElementById('view');
 const $ = (sel, el = document) => el.querySelector(sel);
@@ -10,7 +12,11 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 const store = (() => { try { const k = '__t'; localStorage.setItem(k, k); localStorage.removeItem(k); return localStorage; } catch { const m = new Map(); return { getItem: k => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)), removeItem: k => m.delete(k) }; } })();
 const persistent = store !== null && (() => { try { return !!window.localStorage; } catch { return false; } })();
 
-let DATA = null, BY_ID = new Map(), SERIES_IDS = [];
+let DATA = null, BY_ID = new Map(), SERIES_IDS = [], WEB = null;
+// Official M.A. Ford images are linked from maford.com (not copied); the server's resizer gives thumbnails.
+const MF = 'https://www.maford.com';
+const mfImg = (path, w) => w ? `${MF}/ScaleImage2.aspx?w=${w}&img=~${encodeURI(path)}` : MF + encodeURI(path);
+const webSeries = id => WEB?.series?.[id] || null;
 const CORNERS = { square: 'Square end', 'corner radius': 'Corner radius', ball: 'Ball nose', oval: 'Oval form' };
 const DOC_SHORT = { gp: 'FORDMAX GP end mill section', hp: 'APG HP end mill section' };
 
@@ -40,18 +46,19 @@ function catalogLink(doc, pdfPage, label) {
 
 // ---------- routing ----------
 function route() {
-  const h = location.hash || '#/find';
+  const h = location.hash || '#/calc';
   const [path, query] = h.slice(1).split('?');
   const params = new URLSearchParams(query || '');
   const parts = path.split('/').filter(Boolean);
-  const tab = { find: 'find', tool: 'find', calc: 'calc', saved: 'saved', catalogs: 'catalogs' }[parts[0]] || 'find';
+  const tab = { find: 'find', tool: 'find', calc: 'calc', saved: 'saved', catalogs: 'catalogs' }[parts[0]] || 'calc';
   for (const a of document.querySelectorAll('.tabs a')) a.toggleAttribute('aria-current', a.dataset.tab === tab), a.dataset.tab === tab && a.setAttribute('aria-current', 'page');
   if (!DATA) { view.innerHTML = '<p class="empty">Loading catalog data…</p>'; return; }
   if (parts[0] === 'tool') return renderTool(decodeURIComponent(parts[1] || ''));
   if (parts[0] === 'calc') return renderCalc(params);
   if (parts[0] === 'saved') return renderSaved();
   if (parts[0] === 'catalogs') return renderCatalogs();
-  return renderFind(params);
+  if (parts[0] === 'find') return renderFind(params);
+  return renderCalc(params);
 }
 window.addEventListener('hashchange', () => { route(); view.focus({ preventScroll: true }); window.scrollTo(0, 0); });
 
@@ -83,11 +90,21 @@ function facetCounts(c, key) {
   return m;
 }
 
-function renderFind() {
+function matSource(id, iso) {
+  const s = DATA.series[id] || {}; const cat = s.materials?.groups.includes(iso), web = s.webIso?.includes(iso);
+  return [cat && (s.materials.scope === 'series' ? 'series table' : 'general GP table'), web && 'maford.com'].filter(Boolean).join(' + ');
+}
+function renderFind(params) {
+  if (params?.get('series') || params?.get('dc')) {
+    // Arrived from the calculator's tool guidance: show that series in that size (and the job's material).
+    Object.assign(find, { q: '', re: '', locMin: '', locMax: '', oalMin: '', oalMax: '', seriesOnly: false, limit: 40, open: true, series: params.get('series') || '', dc: params.get('dc') || '', material: materialById(calc.material)?.iso || '' });
+    find.nof.clear(); find.corner.clear(); find.coating.clear();
+    history.replaceState(null, '', '#/find');
+  }
   const { c, parsed } = findCriteria();
   const results = search(DATA.products, c, DATA.series);
   // With a material chosen, series with their own cutting-data table come before the general GP table.
-  if (c.material) results.sort((x, y) => (DATA.series[x.series]?.materials?.scope === 'series' ? 0 : 1) - (DATA.series[y.series]?.materials?.scope === 'series' ? 0 : 1));
+  if (c.material) results.sort((x, y) => (DATA.series[x.series]?.materials?.scope === 'series' ? 0 : 1) - (DATA.series[y.series]?.materials?.scope === 'series' ? 0 : 1) || (DATA.series[y.series]?.webIso?.includes(c.material) ? 1 : 0) - (DATA.series[x.series]?.webIso?.includes(c.material) ? 1 : 0));
   const total = DATA.products.length;
   const anyFilter = Object.keys(c).length > 0;
   const chip = (group, value, label, count) => `<button type="button" class="chip" data-f="${group}" data-v="${esc(value)}" aria-pressed="${find[group].has(value)}">${esc(label)} <span class="n">${count ?? 0}</span></button>`;
@@ -121,15 +138,15 @@ function renderFind() {
       <div><label for="f-series">Series</label><select id="f-series" data-k="series"><option value="">Any series</option>${SERIES_IDS.map(s => `<option value="${esc(s)}" ${find.series === s ? 'selected' : ''}>${esc(DATA.series[s].title)}</option>`).join('')}</select></div>
       <div><label for="f-mat">Workpiece material</label><select id="f-mat" data-k="material"><option value="">Any material</option>${Object.entries(ISO_GROUPS).map(([g, n]) => `<option value="${g}" ${find.material === g ? 'selected' : ''}>${g} · ${esc(n)}</option>`).join('')}</select></div>
     </div>
-    <p class="muted" style="font-size:.82rem">Material matches come only from the ISO groups printed in M.A. Ford's recommended cutting-data tables, never from coating. GP series are covered by the catalog's general-purpose table rather than series tables.
+    <p class="muted" style="font-size:.82rem">Material matches come only from what M.A. Ford publishes: the ISO groups in the catalog's cutting-data tables and the material icons on each series' web page, never from coating. Each result says which source matched.
       <label style="display:flex;gap:.5rem;align-items:center;margin-top:.4rem;color:var(--text)"><input type="checkbox" id="f-seriesOnly" style="width:auto;min-height:auto" ${find.seriesOnly ? 'checked' : ''}> Series-specific tables only</label></p>
     <button type="button" class="btn small" id="f-clear">Clear search and filters</button>
   </details>
   <p class="coverage">${results.length === total && !anyFilter ? `${total.toLocaleString()} end mills loaded` : `<b>${results.length.toLocaleString()}</b> of ${total.toLocaleString()} end mills loaded`} — the GP and HP end-mill sections of the Vol. 105 catalog only, not the whole M.A. Ford catalog. <a href="#/catalogs">What's covered</a></p>
   ${mat ? `<p class="note info">Showing series whose catalog cutting-data tables list ISO ${mat} (${esc(ISO_GROUPS[mat])}). A listing gives starting data in the catalog; it does not mean every tool suits every job.</p>` : ''}
-  <ul class="results">${results.slice(0, find.limit).map(p => `<li><a class="result" href="#/tool/${encodeURIComponent(p.id)}">
+  <ul class="results">${results.slice(0, find.limit).map(p => `<li><a class="result${webSeries(p.series)?.photo ? ' has-pic' : ''}" href="#/tool/${encodeURIComponent(p.id)}">${webSeries(p.series)?.photo ? `<img class="thumb" src="${esc(mfImg(webSeries(p.series).photo, 160))}" alt="" loading="lazy" onerror="this.remove()">` : ''}<span class="rbody">
       <div class="t"><span class="id mono">${esc(p.tool)}</span><span class="dia">${esc(dia(p))}${p.sys === 'mm' ? '' : ` <small class="muted">${toMm(p.dc)} mm</small>`}</span></div>
-      <div class="specs">${esc(specLine(p))}${mat ? ` · <span class="tag">${DATA.series[p.series]?.materials?.scope === 'series' ? 'series table' : 'general GP table'}</span>` : ''}</div></a></li>`).join('')}</ul>
+      <div class="specs">${esc(specLine(p))}${mat ? ` · <span class="tag">${matSource(p.series, mat)}</span>` : ''}</div></span></a></li>`).join('')}</ul>
   ${results.length === 0 ? `<div class="empty">No loaded end mill matches. ${anyFilter ? 'Try removing a filter.' : ''}<br><small>Only the GP and HP end-mill sections are loaded; drills, taps and other tools are not.</small></div>` : ''}
   ${results.length > find.limit ? `<button type="button" class="btn" id="more" style="width:100%">Show ${Math.min(40, results.length - find.limit)} more of ${(results.length - find.limit).toLocaleString()}</button>` : ''}`;
 
@@ -175,13 +192,25 @@ function renderTool(id) {
   const nofSource = s.nof === 'table' ? 'printed in the product table' : `series table of contents (${esc(s.toc || '')})`;
   const mats = s.materials;
   const cutPages = (s.cuttingData || []).map(c => c.page);
-  const unread = !mats && (s.cuttingData || []).length ? '' : '';
+  const ws = webSeries(p.series), wdesc = WEB?.tools?.[p.id];
+  const mfPage = `${MF}/product-details/${encodeURIComponent(p.tool)}`;
+  const offPic = label => `onerror="this.replaceWith(Object.assign(document.createElement('p'),{className:'pic-off',textContent:'${label} needs internet'}))"`;
+  const gallery = ws?.photo || ws?.drawing ? `<div class="card gallery">
+    ${ws.photo ? `<img class="photo" src="${esc(mfImg(ws.photo, 900))}" alt="M.A. Ford Series ${esc(p.series)} end mill" ${offPic('Product photo')}>` : ''}
+    ${ws.drawing ? `<img class="drawing" src="${esc(mfImg(ws.drawing, 900))}" alt="M.A. Ford dimension drawing, Series ${esc(p.series)}" loading="lazy" onerror="this.remove()">` : ''}
+    <p class="muted small">Photo and drawing for Series ${esc(p.series)}, shown from maford.com. They picture the series, not this exact size. © M.A. Ford.</p>
+    <div class="list-actions"><a class="ext btn small" href="${esc(mfPage)}" target="_blank" rel="noopener">View this tool on maford.com</a></div>
+  </div>` : '';
+  const webLists = `${ws?.materials?.length ? `<h3>M.A. Ford website lists</h3><div class="mf-icons">${ws.materials.map(m => `<span><img src="${esc(mfImg(m.icon))}" alt="" loading="lazy" onerror="this.remove()">${esc(m.name)}${m.iso ? ` (${m.iso})` : ''}</span>`).join('')}</div>` : ''}
+    ${ws?.applications?.length ? `<div class="mf-apps">${ws.applications.map(a => `<figure><img src="${esc(mfImg(a.image, 240))}" alt="" loading="lazy" onerror="this.remove()"><figcaption>${esc(a.name)}</figcaption></figure>`).join('')}</div>` : ''}`;
   view.innerHTML = `
   <p><a href="#/find">‹ Results</a></p>
   <div class="card">
     <div class="row"><h1 class="grow mono" style="margin:0">${esc(p.tool)}</h1><span class="tag">EDP ${esc(p.edp)}</span></div>
     <p style="margin:.3rem 0 0"><b>${esc(dia(p))}</b> ${esc(s.line || '')} Series ${esc(p.series)} · ${esc(p.nof ?? '?')} flutes · ${esc(corner(p))} · ${esc(p.coating || 'coating not printed in the table')}${p.shank ? ` · ${esc(p.shank)} shank` : ''}</p>
+    ${wdesc ? `<p class="muted small" style="margin:.4rem 0 0">M.A. Ford website: ${esc(wdesc)}</p>` : ''}
   </div>
+  ${gallery}
   <div class="split">
     <div>
       <div class="card"><h2>Dimensions</h2>
@@ -194,7 +223,6 @@ function renderTool(id) {
           ${p.stocked != null ? `<tr><th>Stock status</th><td>${p.stocked ? 'Stocked' : 'Non-stocked'} <small class="muted">as printed</small></td></tr>` : ''}
         </tbody></table>
         ${p.flags?.length ? `<div class="note warn"><b>Reading notes</b><ul>${p.flags.map(f => `<li>${esc(f === 'footnote' ? 'The decimal size carries a catalog footnote (*); see the printed page.' : f)}</li>`).join('')}</ul></div>` : ''}
-        <p class="muted" style="font-size:.85rem">No product image: this demo shows only documented data. The catalog page has M.A. Ford's drawing.</p>
       </div>
       <a class="btn primary" style="width:100%;margin-bottom:12px" href="#/calc?tool=${encodeURIComponent(p.id)}">Load into calculator</a>
     </div>
@@ -204,6 +232,7 @@ function renderTool(id) {
           <div class="chips">${mats.groups.map(g => `<span class="chip" style="cursor:default">${g} · ${esc(ISO_GROUPS[g])}</span>`).join('')}</div>
           <p class="muted" style="font-size:.85rem">The catalog gives starting speeds and feeds for these groups. Open the page for the specific materials, hardness and values.</p>`
         : `<p>No material groups were read for this series.${cutPages.length ? ` The catalog has cutting data for it on pages ${cutPages.join(', ')}, in a layout this demo does not read yet.` : ''}</p>`}
+        ${webLists}
         ${s.notes?.length ? `<h3>From the series page</h3><ul>${s.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}
         ${s.features?.length ? `<p><span class="muted">Features:</span> ${s.features.map(esc).join(', ')}</p>` : ''}
       </div>
@@ -225,7 +254,7 @@ const EX = { in: { vc: 400, fz: 0.002 }, mm: { vc: 120, fz: 0.05 } };
 const CALC_KEY = 'sam-maford-calc-v1', MAXRPM_KEY = 'sam-maford-maxrpm';
 let calc = loadCalc();
 function loadCalc() {
-  const base = { units: 'in', d: undefined, z: undefined, vc: undefined, n: undefined, fz: undefined, vf: undefined, ae: undefined, ap: undefined, maxRpm: undefined, speedFrom: 'vc', feedFrom: 'fz', toolId: null, examples: {} };
+  const base = { units: 'in', d: undefined, z: undefined, l2: undefined, re: undefined, material: null, op: null, vc: undefined, n: undefined, fz: undefined, vf: undefined, ae: undefined, ap: undefined, maxRpm: undefined, speedFrom: 'vc', feedFrom: 'fz', toolId: null, examples: {} };
   try { Object.assign(base, JSON.parse(store.getItem(CALC_KEY) || '{}')); } catch {}
   const m = parseFloat(store.getItem(MAXRPM_KEY)); if (m > 0) base.maxRpm = m;
   return base;
@@ -244,104 +273,124 @@ function loadTool(p, units = calc.units) {
   calc.z = p.nof ?? calc.z;
 }
 
+const UNITS = { in: { len: 'in', vc: 'SFM', fz: 'in/tooth', vf: 'IPM', mrr: 'in³/min' }, mm: { len: 'mm', vc: 'm/min', fz: 'mm/tooth', vf: 'mm/min', mrr: 'cm³/min' } };
+
+// The tool the calculator works with: a catalog tool, or the user's own numbers (l2 = flute length).
+function currentTool() {
+  const p = calc.toolId ? BY_ID.get(calc.toolId) : null;
+  const u = calc.units, f = u === 'mm' ? MM_PER_IN : 1;
+  if (p) return { catalog: p, id: p.id, d: calc.d, apmx: p.apmx * f, re: p.re != null ? p.re * f : 0, nof: p.nof };
+  return { catalog: null, id: 'your tool', d: calc.d, apmx: calc.l2, re: calc.re, nof: calc.z };
+}
+
 function renderCalc(params) {
-  if (params?.get('tool')) { const p = BY_ID.get(params.get('tool')); if (p) { if (p.sys === 'mm' && !calc.d) calc.units = 'mm'; loadTool(p); saveCalc(); } history.replaceState(null, '', '#/calc'); }
+  if (params?.get('tool')) { const p = BY_ID.get(params.get('tool')); if (p) { if (p.sys === 'mm' && calc.units !== 'mm') calc = { ...convert(calc, 'mm'), maxRpm: calc.maxRpm, material: calc.material, op: calc.op, examples: {} }; loadTool(p); saveCalc(); toast(`${p.tool} loaded`); } history.replaceState(null, '', '#/calc'); }
   if (params?.get('s')) {
     const got = setups.decode(params.get('s'));
     history.replaceState(null, '', '#/calc');
     if (got) { calc = { ...loadCalc(), ...got.setup, examples: {}, toolId: got.setup.toolId && BY_ID.has(got.setup.toolId) ? got.setup.toolId : null }; saveCalc(); toast(got.name ? `Opened shared setup “${got.name}”` : 'Opened shared setup'); }
     else toast('That share link could not be read.');
   }
-  const u = calc.units, U = u === 'mm' ? { len: 'mm', vc: 'm/min', fz: 'mm/tooth', vf: 'mm/min', mrr: 'cm³/min' } : { len: 'in', vc: 'SFM', fz: 'in/tooth', vf: 'IPM', mrr: 'in³/min' };
-  const tool = calc.toolId ? BY_ID.get(calc.toolId) : null;
-  const s = DATA.series[tool?.series];
-  const r = compute({ ...calc, tool: toolInUnits(tool, u) });
-  const num = (k, v) => v == null || v === '' || Number.isNaN(v) ? '' : String(+(+v).toFixed(6));
+  const u = calc.units, U = UNITS[u];
+  const T = currentTool(), tool = T.catalog;
+  const s = tool ? DATA.series[tool.series] : null;
+  const mat = materialById(calc.material);
+  const op = OPERATIONS.find(o => o.id === calc.op);
+  const r = compute({ ...calc, tool: { id: tool ? tool.tool : 'your tool', d: tool ? T.d : undefined, nof: tool ? T.nof : undefined, apmx: T.apmx } });
+  const num = v => v == null || v === '' || Number.isNaN(v) ? '' : String(+(+v).toFixed(6));
+  const L = v => v == null || Number.isNaN(v) ? '—' : u === 'mm' ? `${fmt(v, 2)}` : (fractionInches(v) ? fractionInches(v) : decimalInches(v, 3));
+  const xD = (v, lim) => calc.d > 0 && v > 0 ? `<span class="xd${lim != null && v > lim + 1e-9 ? ' bad' : ''}">${fmt(v / calc.d, 2)} × D</span>` : '';
   const exFlag = k => calc.examples?.[k] ? '<span class="example-flag">Example</span>' : '';
-  const field = (k, label, unit, ph, opts = '') => `<div class="field"><label for="c-${k}">${label} ${exFlag(k)}</label><div class="unit-input"><input id="c-${k}" data-c="${k}" inputmode="decimal" autocomplete="off" placeholder="${esc(ph)}" value="${esc(num(k, calc[k]))}" ${opts}><span>${unit}</span></div></div>`;
+  const input = (k, ph, opts = '') => `<input id="c-${k}" data-c="${k}" inputmode="decimal" autocomplete="off" placeholder="${esc(ph)}" value="${esc(num(calc[k]))}" ${opts}>`;
+  const photo = tool && webSeries(tool.series)?.photo;
+  const matches = calc.d > 0 ? guide({ iso: mat?.iso, op: op?.web, dc: u === 'mm' ? calc.d / MM_PER_IN : calc.d }, DATA.products, DATA.series, WEB) : [];
   const cutPages = (s?.cuttingData || []).map(c => c.page);
+
   view.innerHTML = `
-  <div class="row" style="margin-bottom:10px"><h1 class="grow" style="margin:0">Calculator</h1>
-    <div class="seg" role="group" aria-label="Units"><button type="button" data-units="in" aria-pressed="${u === 'in'}">Inch</button><button type="button" data-units="mm" aria-pressed="${u === 'mm'}">Metric</button></div></div>
-  ${tool ? `<div class="card"><div class="row"><div class="grow"><b class="mono">${esc(tool.tool)}</b> <span class="muted">· ${esc(s?.title || '')}</span><br><small class="muted">${esc(dia(tool))} · ${esc(tool.nof)} fl · ${esc(corner(tool))} · APMX ${esc(lenText(tool, 'apmx', 'APMX') || '—')}${tool.lu != null ? ` · reach ${esc(lenText(tool, 'lu', 'LU'))}` : ''}</small></div>
-      <a class="btn small" href="#/tool/${encodeURIComponent(tool.id)}">Details</a><button type="button" class="btn small" id="c-untool">Clear tool</button></div>
-      ${cutPages.length ? `<p class="muted" style="font-size:.82rem;margin-bottom:0">M.A. Ford publishes recommended cutting data for this series on catalog pages ${cutPages.join(', ')}. This demo does not copy those values: enter your own or read them there. ${catalogLink(tool.doc, s.cuttingData[0].pdfPage, 'Open page ' + cutPages[0])}</p>` : ''}</div>`
-    : `<p class="note info">Pick a tool in <a href="#/find">Find Tools</a> to load its diameter, flutes and cutting length, or type them below.</p>`}
-  <div class="split">
-    <div class="card">
-      <div class="grid2">${field('d', 'Diameter (DC)', U.len, u === 'mm' ? 'e.g. 12' : 'e.g. 1/2 or .5')}${field('z', 'Flutes (z)', 'fl', 'e.g. 4', 'inputmode="numeric"')}</div>
-      <div class="row" style="margin:4px 0 6px"><span class="muted grow" style="font-size:.85rem">Speed from</span>
-        <div class="seg" role="group" aria-label="Speed input"><button type="button" data-mode="speedFrom" data-v="vc" aria-pressed="${calc.speedFrom !== 'n'}">Cutting speed</button><button type="button" data-mode="speedFrom" data-v="n" aria-pressed="${calc.speedFrom === 'n'}">RPM</button></div></div>
-      ${calc.speedFrom === 'n' ? field('n', 'Spindle speed (n)', 'RPM', 'e.g. 8000', 'inputmode="numeric"') : field('vc', 'Cutting speed (vc)', U.vc, 'your value')}
-      <div class="row" style="margin:4px 0 6px"><span class="muted grow" style="font-size:.85rem">Feed from</span>
-        <div class="seg" role="group" aria-label="Feed input"><button type="button" data-mode="feedFrom" data-v="fz" aria-pressed="${calc.feedFrom !== 'vf'}">Chip load</button><button type="button" data-mode="feedFrom" data-v="vf" aria-pressed="${calc.feedFrom === 'vf'}">Feed rate</button></div></div>
-      ${calc.feedFrom === 'vf' ? field('vf', 'Feed rate (vf)', U.vf, 'your value') : field('fz', 'Chip load (fz)', U.fz, 'your value')}
-      <div class="grid2">${field('ae', 'Radial width (ae)', U.len, 'optional')}${field('ap', 'Axial depth (ap)', U.len, 'optional')}</div>
-      ${field('maxRpm', 'Machine max RPM', 'RPM', 'optional', 'inputmode="numeric"')}
-      <div class="list-actions"><button type="button" class="btn small" id="c-example">Fill example values</button><button type="button" class="btn small" id="c-reset">Clear</button></div>
-      <p class="muted" style="font-size:.8rem">Example values are placeholders to show the maths, not recommendations for any tool or material.</p>
+  <h1 class="sr">Calculator</h1>
+  <button type="button" class="card tool-card" id="c-tool" aria-label="Tool: change or edit">
+    <div class="tool-pic">${photo ? `<img src="${esc(mfImg(photo, 240))}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'pic-off',textContent:'Image needs internet'}))">` : '<span class="pic-off">Your tool</span>'}</div>
+    <div class="tool-head"><b>${tool ? `<span class="mono">${esc(tool.tool)}</span>` : 'User defined end mill'}</b><small>${tool ? `${esc(s?.line || '')} · Series ${esc(tool.series)} · ${esc(tool.coating || 'coating not printed')}` : 'Tap to enter your sizes, or pick a catalog tool'}</small></div>
+    <div class="stats4"><div><span>Diameter</span><b>${L(calc.d)}</b></div><div><span>Flute len.</span><b>${L(T.apmx)}</b></div><div><span>Radius</span><b>${tool ? esc(tool.corner === 'ball' ? 'Ball' : tool.re != null ? (u === 'mm' ? fmt(T.re, 2) : decimalInches(tool.re, 3)) : '0') : calc.re > 0 ? L(calc.re) : '0'}</b></div><div><span>Z</span><b>${esc(calc.z ?? '—')}</b></div></div>
+  </button>
+
+  <button type="button" class="card mat-row" id="c-mat">
+    <span class="iso" style="background:${mat ? ISO_COLORS[mat.iso] : 'var(--surface-2)'}">${mat ? mat.iso : '?'}</span>
+    <span class="grow"><b>${mat ? esc(mat.name) : 'Choose workpiece material'}</b><small>${mat ? esc(ISO_NAMES[mat.iso]) + (mat.grades ? ' · e.g. ' + esc(mat.grades) : '') : 'Used to find M.A. Ford tools listed for it'}</small></span><span aria-hidden="true">›</span>
+  </button>
+
+  <div class="ops chips" role="group" aria-label="Operation">${OPERATIONS.map(o => `<button type="button" class="chip" data-op="${o.id}" aria-pressed="${calc.op === o.id}">${esc(o.name)}</button>`).join('')}</div>
+
+  <div class="card">
+    <div class="row" style="justify-content:space-between;margin-bottom:6px"><h2 style="margin:0">Speed &amp; feed</h2>
+      <div class="seg" role="group" aria-label="Units"><button type="button" data-units="in" aria-pressed="${u === 'in'}">Inch</button><button type="button" data-units="mm" aria-pressed="${u === 'mm'}">Metric</button></div></div>
+    <div class="grid2">
+      <div class="field"><label for="c-${calc.speedFrom === 'n' ? 'n' : 'vc'}">${calc.speedFrom === 'n' ? 'RPM' : `Vc (${U.vc})`} ${exFlag('vc')} <button type="button" class="linkish" data-mode="speedFrom" data-v="${calc.speedFrom === 'n' ? 'vc' : 'n'}">use ${calc.speedFrom === 'n' ? U.vc : 'RPM'}</button></label>${calc.speedFrom === 'n' ? input('n', 'e.g. 8000', 'inputmode="numeric"') : input('vc', 'your value')}</div>
+      <div class="field"><label for="c-${calc.feedFrom === 'vf' ? 'vf' : 'fz'}">${calc.feedFrom === 'vf' ? `Vf (${U.vf})` : `fz (${U.fz})`} ${exFlag('fz')} <button type="button" class="linkish" data-mode="feedFrom" data-v="${calc.feedFrom === 'vf' ? 'fz' : 'vf'}">use ${calc.feedFrom === 'vf' ? 'fz' : U.vf}</button></label>${calc.feedFrom === 'vf' ? input('vf', 'your value') : input('fz', 'your value')}</div>
     </div>
-    <div>
-      <div class="card" aria-live="polite">
-        ${r.errors.length ? `<div class="note err"><ul>${r.errors.map(e => `<li>${esc(e)}</li>`).join('')}</ul></div>` : ''}
-        <div class="out">
-          <div class="big"><div class="k">Spindle speed${r.limited ? ' (limited)' : ''}</div><div class="v">${fmt(r.n, 0)} <span class="u">RPM</span></div>${r.limited ? `<small class="muted">asked for ${fmt(r.nRequested, 0)} RPM</small>` : ''}</div>
-          <div><div class="k">Cutting speed${r.limited ? ' (actual)' : ''}</div><div class="v">${fmt(r.vc, u === 'mm' ? 1 : 0)} <span class="u">${U.vc}</span></div></div>
-          <div><div class="k">Feed rate</div><div class="v">${fmt(r.vf, u === 'mm' ? 0 : 2)} <span class="u">${U.vf}</span></div></div>
-          <div><div class="k">Chip load</div><div class="v">${fmt(r.fz, u === 'mm' ? 4 : 5)} <span class="u">${U.fz}</span></div></div>
-          <div><div class="k">MRR</div><div class="v">${fmt(r.mrr, 2)} <span class="u">${U.mrr}</span></div></div>
-          ${r.aeRatio != null ? `<div class="big"><div class="k">Radial engagement ae/D</div><div class="v">${fmt(r.aeRatio * 100, 1)} <span class="u">%</span></div></div>` : ''}
-        </div>
-        ${r.warnings.length ? `<div class="note warn"><ul>${r.warnings.map(w => `<li>${esc(w)}</li>`).join('')}</ul></div>` : ''}
-        ${r.notes.length && !r.errors.length ? `<p class="muted" style="font-size:.85rem">${r.notes.map(esc).join(' ')}</p>` : ''}
-        <p class="muted" style="font-size:.8rem">Standard formulas on the values entered. A result here does not mean the setup suits the tool, material, holder or machine, and it is not M.A. Ford cutting data.</p>
-      </div>
-      <div class="card"><h2>Save or share</h2>
-        <div class="row"><input id="c-name" class="grow" placeholder="Setup name, e.g. 6061 pocket" maxlength="80" aria-label="Setup name"><button type="button" class="btn primary" id="c-save">Save</button></div>
-        <div class="list-actions"><button type="button" class="btn small" id="c-link">Copy share link</button><button type="button" class="btn small" id="c-copy">Copy summary</button>${navigator.share ? '<button type="button" class="btn small" id="c-share">Share…</button>' : ''}</div>
-        <p class="muted" style="font-size:.8rem">Saved setups stay in this browser on this device. A share link carries the setup inside the link itself.</p>
-      </div>
+    <div class="grid2">
+      <div class="field"><label for="c-ae">ae (${U.len}) ${xD(calc.ae, calc.d)}</label>${input('ae', 'radial width')}</div>
+      <div class="field"><label for="c-ap">ap (${U.len}) ${xD(calc.ap, T.apmx)}</label>${input('ap', 'axial depth')}</div>
     </div>
+    <div class="list-actions"><button type="button" class="btn small" id="c-presets">Engagement presets</button><button type="button" class="btn small" id="c-example">Fill example values</button><button type="button" class="btn small" id="c-reset">Clear</button></div>
+    ${engagementSvg(calc, T)}
+    ${tool && cutPages.length ? `<p class="muted small">M.A. Ford publishes starting speeds and feeds for Series ${esc(tool.series)} on catalog pages ${cutPages.join(', ')}${mat ? ` (look for ${esc(mat.name.toLowerCase())})` : ''}. ${catalogLink(tool.doc, s.cuttingData[0].pdfPage, 'Open page ' + cutPages[0])}</p>` : ''}
+    <p class="muted small">Vc and fz are yours to enter: this demo does not reproduce M.A. Ford's recommendations. Example values only show the maths.</p>
+  </div>
+
+  ${r.errors.length ? `<div class="note err"><ul>${r.errors.map(e => `<li>${esc(e)}</li>`).join('')}</ul></div>` : ''}
+  ${r.warnings.length ? `<div class="note warn"><ul>${r.warnings.map(w => `<li>${esc(w)}</li>`).join('')}</ul></div>` : ''}
+
+  <div class="card"><h2>M.A. Ford tools for this job</h2>
+    ${!(calc.d > 0) ? '<p class="muted">Enter a diameter to see which M.A. Ford series come in that size.</p>' : !matches.length ? `<p>No loaded series ${mat || op ? 'is listed by M.A. Ford for this combination' : 'comes'} in ${esc(L(calc.d))}${u === 'mm' ? ' mm' : '"'}. ${mat || op ? 'Try another operation, or clear the material.' : ''}</p>` : `
+    <p class="muted small">${mat || op ? `Series M.A. Ford lists for ${[mat && esc(ISO_NAMES[mat.iso].toLowerCase()), op && esc(op.name.toLowerCase())].filter(Boolean).join(' and ')}, made in` : 'Series made in'} ${esc(L(calc.d))}${u === 'mm' ? ' mm' : '"'}. Ordered by how much of M.A. Ford's published information matches, not a judgement of the best tool.</p>
+    <ul class="guide">${matches.slice(0, guideLimit).map(m => { const ws = webSeries(m.id); const S = DATA.series[m.id]; return `<li><a class="guide-item" href="#/find?series=${encodeURIComponent(m.id)}&dc=${encodeURIComponent(u === 'mm' ? calc.d + 'mm' : String(calc.d))}">
+      <span class="tool-pic small">${ws?.photo ? `<img src="${esc(mfImg(ws.photo, 200))}" alt="" loading="lazy" onerror="this.remove()">` : ''}</span>
+      <span class="grow"><b>Series ${esc(m.id)}</b> <small class="muted">${esc(S?.line || '')}</small><br><small>${m.tools.length} tool${m.tools.length > 1 ? 's' : ''} · ${m.nofs.join('/')} fl · ${esc(m.coatings.join(', ') || 'coating not printed')}</small>${m.reasons.length ? `<br><small class="muted">${esc(m.reasons.join(' · '))}</small>` : ''}</span><span aria-hidden="true">›</span></a></li>`; }).join('')}</ul>
+    ${matches.length > guideLimit ? `<button type="button" class="btn small" id="c-more">Show all ${matches.length} series</button>` : ''}`}
+  </div>
+
+  <div class="card"><h2>Machine</h2>
+    <div class="field"><label for="c-maxRpm">Max spindle RPM (optional)</label>${input('maxRpm', 'e.g. 12000', 'inputmode="numeric"')}</div>
+  </div>
+
+  <div class="card"><h2>Save or share</h2>
+    <div class="row"><input id="c-name" class="grow" placeholder="Setup name, e.g. 6061 pocket" maxlength="80" aria-label="Setup name"><button type="button" class="btn primary" id="c-save">Save</button></div>
+    <div class="list-actions"><button type="button" class="btn small" id="c-link">Copy share link</button><button type="button" class="btn small" id="c-copy">Copy summary</button>${navigator.share ? '<button type="button" class="btn small" id="c-share">Share…</button>' : ''}</div>
+    <p class="muted small">Saved setups stay in this browser on this device. A share link carries the setup inside the link itself.</p>
+  </div>
+  <p class="muted small">Standard formulas on the values entered. A result does not mean the setup suits the tool, material, holder or machine.</p>
+
+  <div class="resultbar" aria-live="polite">
+    <div><span>RPM${r.limited ? ' (max)' : ''}</span><b>${fmt(r.n, 0)}</b></div>
+    <div><span>Vf (${U.vf})</span><b>${fmt(r.vf, u === 'mm' ? 0 : 2)}</b></div>
+    <div><span>Q (${U.mrr})</span><b>${fmt(r.mrr, 2)}</b></div>
+    ${r.limited ? `<div class="rb-note">${fmt(r.vc, u === 'mm' ? 1 : 0)} ${U.vc} at max RPM</div>` : calc.speedFrom === 'n' && r.vc != null ? `<div class="rb-note">${fmt(r.vc, u === 'mm' ? 1 : 0)} ${U.vc}</div>` : calc.feedFrom === 'vf' && r.fz != null ? `<div class="rb-note">fz ${fmt(r.fz, 5)}</div>` : ''}
   </div>`;
 
-  view.querySelectorAll('[data-units]').forEach(b => b.addEventListener('click', () => {
-    if (calc.units === b.dataset.units) return;
-    const max = calc.maxRpm, tid = calc.toolId, ex = calc.examples;
-    calc = { ...convert(calc, b.dataset.units), maxRpm: max, toolId: tid, examples: ex };
-    if (tid && BY_ID.get(tid)) { const t = BY_ID.get(tid); const keepD = Math.abs((calc.units === 'mm' ? t.dc * MM_PER_IN : t.dc) - calc.d) < 0.01; if (keepD) loadTool(t, calc.units); }
-    for (const k of ['d', 'vc', 'fz', 'vf', 'ae', 'ap']) if (typeof calc[k] === 'number') calc[k] = +calc[k].toFixed(6);
-    saveCalc(); renderCalc();
-  }));
+  // Tool sheet / material sheet / presets
+  $('#c-tool').addEventListener('click', openToolSheet);
+  $('#c-mat').addEventListener('click', openMaterialSheet);
+  $('#c-presets').addEventListener('click', openPresetSheet);
+  $('#c-more')?.addEventListener('click', () => { guideLimit = 999; renderCalc(); });
+  view.querySelectorAll('[data-op]').forEach(b => b.addEventListener('click', () => { calc.op = calc.op === b.dataset.op ? null : b.dataset.op; saveCalc(); renderCalc(); }));
+  view.querySelectorAll('[data-units]').forEach(b => b.addEventListener('click', () => switchUnits(b.dataset.units)));
   view.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => {
-    const k = b.dataset.mode, v = b.dataset.v; if (calc[k] === v) return;
-    // Carry the current result across so switching input mode keeps the same numbers.
-    if (k === 'speedFrom' && r.n != null) { if (v === 'n') calc.n = Math.round(r.nRequested ?? r.n); else calc.vc = +(speedFromN(r.nRequested ?? r.n)).toFixed(2); }
+    const k = b.dataset.mode, v = b.dataset.v;
+    if (k === 'speedFrom' && r.n != null) { if (v === 'n') calc.n = Math.round(r.nRequested ?? r.n); else calc.vc = +((r.nRequested ?? r.n) * Math.PI * calc.d / (u === 'mm' ? 1000 : 12)).toFixed(2); }
     if (k === 'feedFrom' && r.vf != null) { if (v === 'vf') calc.vf = +r.vf.toFixed(u === 'mm' ? 1 : 3); else calc.fz = +r.fz.toFixed(6); }
     calc[k] = v; saveCalc(); renderCalc();
   }));
-  function speedFromN(n) { return n * Math.PI * calc.d / (u === 'mm' ? 1000 : 12); }
-  view.querySelectorAll('input[data-c]').forEach(i => i.addEventListener('input', () => {
-    const k = i.dataset.c; const raw = i.value.trim();
-    let v;
-    if (!raw) v = undefined;
-    else if (['d', 'ae', 'ap'].includes(k)) { const L = parseLength(raw, u); v = L ? +(u === 'mm' ? L.in * MM_PER_IN : L.in).toFixed(6) : NaN; }
-    else v = /^[-+]?(\d+\.?\d*|\.\d+)$/.test(raw) ? parseFloat(raw) : NaN;
-    calc[k] = v; if (calc.examples) delete calc.examples[k];
-    i.setAttribute('aria-invalid', Number.isNaN(v) ? 'true' : 'false');
-    saveCalc();
-    clearTimeout(renderCalc.t); renderCalc.t = setTimeout(() => { const pos = i.selectionStart; renderCalc(); const el = $('#c-' + k); if (el) { el.focus({ preventScroll: true }); if (el.value !== raw) el.value = raw; try { el.setSelectionRange(pos, pos); } catch {} } }, 350);
-  }));
+  bindNumberInputs(view, renderCalc);
   $('#c-example').addEventListener('click', () => {
     const ex = EX[u]; calc.examples = {};
-    if (calc.speedFrom === 'n') calc.speedFrom = 'vc';
-    if (calc.feedFrom === 'vf') calc.feedFrom = 'fz';
+    calc.speedFrom = 'vc'; calc.feedFrom = 'fz';
     calc.vc = ex.vc; calc.fz = ex.fz; calc.examples.vc = calc.examples.fz = true;
     if (!calc.d) { calc.d = u === 'mm' ? 12 : 0.5; calc.examples.d = true; }
     if (!calc.z) { calc.z = 4; calc.examples.z = true; }
     saveCalc(); renderCalc();
   });
-  $('#c-reset').addEventListener('click', () => { const max = calc.maxRpm; calc = { units: u, speedFrom: 'vc', feedFrom: 'fz', toolId: null, examples: {}, maxRpm: max }; saveCalc(); renderCalc(); });
-  $('#c-untool')?.addEventListener('click', () => { calc.toolId = null; saveCalc(); renderCalc(); });
+  $('#c-reset').addEventListener('click', () => { calc = { ...calc, vc: undefined, n: undefined, fz: undefined, vf: undefined, ae: undefined, ap: undefined, examples: {} }; saveCalc(); renderCalc(); });
   $('#c-save').addEventListener('click', () => {
     const name = $('#c-name').value.trim() || (tool ? `${tool.tool} setup` : 'Untitled setup');
     const item = setups.add(store, name, calc);
@@ -352,12 +401,129 @@ function renderCalc(params) {
   $('#c-copy').addEventListener('click', () => copy(summary(calc, r, $('#c-name').value.trim()), 'Summary copied'));
   $('#c-share')?.addEventListener('click', () => navigator.share({ title: 'SAM tooling setup', text: summary(calc, r, $('#c-name').value.trim()), url: link() }).catch(() => {}));
 }
+let guideLimit = 4;
+
+function switchUnits(to) {
+  if (calc.units === to) return;
+  const keep = { maxRpm: calc.maxRpm, toolId: calc.toolId, examples: calc.examples, material: calc.material, op: calc.op };
+  const f = to === 'mm' ? MM_PER_IN : 1 / MM_PER_IN;
+  const l2 = calc.l2 != null ? calc.l2 * f : calc.l2, re = calc.re != null ? calc.re * f : calc.re;
+  calc = { ...convert(calc, to), ...keep, l2, re };
+  if (keep.toolId && BY_ID.get(keep.toolId)) loadTool(BY_ID.get(keep.toolId), to);
+  for (const k of ['d', 'vc', 'fz', 'vf', 'ae', 'ap', 'l2', 're']) if (typeof calc[k] === 'number') calc[k] = +calc[k].toFixed(6);
+  saveCalc(); renderCalc();
+}
+
+// Number fields: lengths accept fractions and units ("1/2", "12mm"); speeds take plain numbers.
+function bindNumberInputs(root, rerender) {
+  const u = calc.units;
+  root.querySelectorAll('input[data-c]').forEach(i => i.addEventListener('input', () => {
+    const k = i.dataset.c, raw = i.value.trim();
+    let v;
+    if (!raw) v = undefined;
+    else if (['d', 'ae', 'ap', 'l2', 're'].includes(k)) { const P = parseLength(raw, u); v = P ? +(u === 'mm' ? P.in * MM_PER_IN : P.in).toFixed(6) : (k === 're' && /^0*\.?0*$/.test(raw) ? 0 : NaN); }
+    else v = /^[-+]?(\d+\.?\d*|\.\d+)$/.test(raw) ? parseFloat(raw) : NaN;
+    calc[k] = v; if (calc.examples) delete calc.examples[k];
+    i.setAttribute('aria-invalid', Number.isNaN(v) ? 'true' : 'false');
+    saveCalc();
+    clearTimeout(bindNumberInputs.t);
+    bindNumberInputs.t = setTimeout(() => { const pos = i.selectionStart; rerender(); const el = document.getElementById('c-' + k); if (el) { el.focus({ preventScroll: true }); if (el.value !== raw) el.value = raw; try { el.setSelectionRange(pos, pos); } catch {} } }, 400);
+  }));
+}
+
+// Schematic of the cut, like the engagement picture in M.A. Ford's app: a block with the tool's
+// axial (ap) and radial (ae) engagement. Green when ap is within the flute length and ae within D.
+function engagementSvg(c, T) {
+  if (!(c.d > 0)) return '';
+  const D = c.d, ap = c.ap > 0 ? c.ap : null, ae = c.ae > 0 ? c.ae : null, loc = T.apmx > 0 ? T.apmx : null;
+  const bad = (ap && loc && ap > loc + 1e-9) || (ae && ae > D + 1e-9);
+  const H = 120, s = H / Math.max(loc || D * 2, ap || 0, D * 1.5);
+  const tw = Math.max(18, Math.min(70, D * s)), flute = (loc || D * 2) * s;
+  const apH = ap ? Math.min(ap * s, H) : 0, aeW = ae ? Math.min(ae / D, 1) * tw : 0;
+  const x0 = 150, top = 22 + (H - flute);
+  const col = bad ? 'var(--bad)' : 'var(--good)';
+  return `<figure class="engage"><svg viewBox="0 0 320 170" role="img" aria-label="Engagement: ae ${ae ? fmt(ae / D, 2) + ' × D' : 'not set'}, ap ${ap ? fmt(ap / D, 2) + ' × D' : 'not set'}">
+    <rect x="40" y="${22 + H - apH}" width="${x0 - 40 + aeW}" height="${apH}" fill="var(--block)" stroke="var(--line)"/>
+    <rect x="40" y="${22 + H}" width="240" height="20" fill="var(--block)" stroke="var(--line)"/>
+    <rect x="${x0}" y="12" width="${tw}" height="${top - 12}" fill="var(--shank)"/>
+    <rect x="${x0}" y="${top}" width="${tw}" height="${flute}" fill="var(--flute)"/>
+    ${ap && ae ? `<rect x="${x0}" y="${22 + H - apH}" width="${aeW}" height="${apH}" fill="${col}" opacity=".85"/>` : ''}
+    ${loc ? `<line x1="${x0 + tw + 6}" y1="${top}" x2="${x0 + tw + 6}" y2="${top + flute}" stroke="var(--muted)"/><text x="${x0 + tw + 10}" y="${top + flute / 2 + 4}" font-size="11" fill="var(--muted)">flute length</text>` : ''}
+  </svg><figcaption>${ap && ae ? (bad ? 'Outside the tool: check ae and ap.' : `ae ${fmt(ae / D, 2)} × D, ap ${fmt(ap / D, 2)} × D`) : 'Enter ae and ap to see the cut.'} <span class="muted">Schematic, not to scale for the tool's shape.</span></figcaption></figure>`;
+}
+
+// ---------- sheets ----------
+// Closing always redraws the calculator; the dialog's own close event is not relied on (some browsers skip it).
+function closeSheet() { const d = document.getElementById('sheet'); if (d.open) d.close(); if ((location.hash || '#/calc').startsWith('#/calc')) renderCalc(); }
+function sheet(title, html, onReady) {
+  const d = document.getElementById('sheet');
+  d.innerHTML = `<div class="sheet-head"><h2>${esc(title)}</h2><button type="button" class="btn small" data-close>Done</button></div><div class="sheet-body">${html}</div>`;
+  d.querySelector('[data-close]').addEventListener('click', () => closeSheet());
+  d.oncancel = e => { e.preventDefault(); closeSheet(); }; // Esc key
+  if (!d.open) d.showModal();
+  onReady?.(d);
+}
+
+function openToolSheet() {
+  const u = calc.units, tool = calc.toolId ? BY_ID.get(calc.toolId) : null;
+  const ws = tool && webSeries(tool.series);
+  const stepD = u === 'mm' ? 0.5 : 1 / 64, stepL = u === 'mm' ? 1 : 1 / 16, stepR = u === 'mm' ? 0.1 : 0.005;
+  const T = currentTool();
+  const row = (k, label, step, value, isInt) => `<div class="stepper"><label for="t-${k}">${label}</label><div class="row"><button type="button" class="btn" data-step="${k}" data-d="-${step}" aria-label="Decrease ${label}">−</button><input id="t-${k}" data-t="${k}" inputmode="decimal" value="${esc(value == null || Number.isNaN(value) ? '' : isInt ? value : +(+value).toFixed(4))}"><button type="button" class="btn" data-step="${k}" data-d="${step}" aria-label="Increase ${label}">+</button></div></div>`;
+  sheet('Tool definition', `
+    ${tool ? `<div class="sheet-tool">${ws?.drawing ? `<img class="drawing" src="${esc(mfImg(ws.drawing, 700))}" alt="M.A. Ford drawing for Series ${esc(tool.series)}" onerror="this.remove()">` : ''}
+      <p><b class="mono">${esc(tool.tool)}</b> · Series ${esc(tool.series)} · ${esc(dia(tool))} · ${tool.nof} fl · ${esc(corner(tool))}</p>
+      <p class="muted small">Sizes come from the catalog. Changing them below turns this into your own tool.</p></div>` : '<p class="muted small">Enter your tool, or pick one from the catalog.</p>'}
+    ${row('d', `Diameter D (${u})`, stepD, calc.d)}
+    ${row('l2', `Flute length L2 (${u})`, stepL, T.apmx)}
+    ${row('re', `Corner radius R (${u})`, stepR, T.re ?? 0)}
+    ${row('z', 'Flutes Z', 1, calc.z, true)}
+    <div class="list-actions"><a class="btn primary" href="#/find">Pick from the M.A. Ford catalog</a>${tool ? `<a class="btn" href="#/tool/${encodeURIComponent(tool.id)}">Tool details</a><button type="button" class="btn" id="t-clear">Use my own tool</button>` : ''}</div>`,
+  d => {
+    const toUser = () => { if (calc.toolId) { const t = currentTool(); calc.l2 = +t.apmx.toFixed(6); calc.re = +(t.re || 0).toFixed(6); calc.toolId = null; } };
+    const apply = (k, v) => { toUser(); calc[k] = k === 'z' ? Math.max(1, Math.round(v)) : Math.max(0, +v.toFixed(6)); saveCalc(); };
+    d.querySelectorAll('[data-step]').forEach(b => b.addEventListener('click', () => {
+      const k = b.dataset.step, inp = d.querySelector(`#t-${k}`);
+      const cur = parseFloat(inp.value) || 0, next = cur + parseFloat(b.dataset.d);
+      if (next < (k === 'z' ? 1 : 0)) return;
+      apply(k, next); inp.value = k === 'z' ? calc[k] : +calc[k].toFixed(4);
+    }));
+    d.querySelectorAll('[data-t]').forEach(i => i.addEventListener('change', () => {
+      const k = i.dataset.t; const P = k === 'z' ? { v: parseInt(i.value, 10) } : (() => { const x = parseLength(i.value, u); return x ? { v: u === 'mm' ? x.in * MM_PER_IN : x.in } : /^0*\.?0*$/.test(i.value.trim()) ? { v: 0 } : null; })();
+      if (P && Number.isFinite(P.v)) apply(k, P.v); else i.setAttribute('aria-invalid', 'true');
+    }));
+    d.querySelector('#t-clear')?.addEventListener('click', () => { toUser(); saveCalc(); closeSheet(); });
+    d.querySelectorAll('a').forEach(a => a.addEventListener('click', () => closeSheet()));
+  });
+}
+
+function openMaterialSheet() {
+  sheet('Workpiece material', `<ul class="mat-list">${MATERIALS.map(m => `<li><button type="button" data-m="${m.id}" style="--iso:${ISO_COLORS[m.iso]}" aria-pressed="${calc.material === m.id}">
+      <span class="iso">${m.iso}</span><span class="grow"><b>${esc(m.name)}</b><small>${esc([m.grades, m.hardness].filter(Boolean).join(' · '))}</small></span></button></li>`).join('')}</ul>
+    <p class="muted small">Material names and groups as in the catalog's cutting-data tables. The group is used to find tools M.A. Ford lists for it.</p>
+    ${calc.material ? '<button type="button" class="btn small" data-m="">Clear material</button>' : ''}`,
+  d => d.querySelectorAll('[data-m]').forEach(b => b.addEventListener('click', () => { calc.material = b.dataset.m || null; saveCalc(); closeSheet(); })));
+}
+
+function openPresetSheet() {
+  sheet('Engagement presets', `<p class="muted small">Pick an engagement (radial ae × axial ap, as multiples of the diameter). This only fills ae and ap; it is not a recommendation for any tool or material.</p>
+    <div class="preset-grid">${ENGAGEMENT_PRESETS.map(([ae, ap]) => `<button type="button" data-ae="${ae}" data-ap="${ap}"><svg viewBox="0 0 60 60" aria-hidden="true"><rect x="8" y="${50 - Math.min(ap, 2) * 20}" width="${30 + Math.min(ae, 1) * 14}" height="${Math.min(ap, 2) * 20}" fill="var(--block)"/><rect x="38" y="${50 - Math.min(ap, 2) * 20}" width="${Math.min(ae, 1) * 14}" height="${Math.min(ap, 2) * 20}" fill="var(--good)"/><rect x="38" y="4" width="14" height="46" fill="none" stroke="var(--muted)"/></svg><span>ae ${ae} × D<br>ap ${ap} × D</span></button>`).join('')}</div>
+    ${!(calc.d > 0) ? '<p class="note warn">Enter a tool diameter first.</p>' : ''}`,
+  d => d.querySelectorAll('[data-ae]').forEach(b => b.addEventListener('click', () => {
+    if (!(calc.d > 0)) return;
+    calc.ae = +(calc.d * +b.dataset.ae).toFixed(6); calc.ap = +(calc.d * +b.dataset.ap).toFixed(6);
+    delete calc.examples?.ae; delete calc.examples?.ap; saveCalc(); closeSheet();
+  })));
+}
 
 function summary(c, r, name) {
-  const u = c.units, U = u === 'mm' ? { len: 'mm', vc: 'm/min', fz: 'mm/tooth', vf: 'mm/min', mrr: 'cm³/min' } : { len: 'in', vc: 'SFM', fz: 'in/tooth', vf: 'IPM', mrr: 'in³/min' };
+  const u = c.units, U = UNITS[u];
   const t = c.toolId ? BY_ID.get(c.toolId) : null;
+  const m = materialById(c.material), op = OPERATIONS.find(o => o.id === c.op);
   const lines = [`SAM tooling demo setup${name ? ` — ${name}` : ''}`];
   if (t) lines.push(`Tool: M.A. Ford ${t.tool} (EDP ${t.edp}), Series ${t.series}, ${dia(t)}, ${t.nof} fl, ${corner(t)}, ${t.coating || 'coating not printed'} — catalog Vol. 105 p. ${t.page}`);
+  else lines.push(`Tool: user defined, D ${fmt(c.d)} ${U.len}, flute length ${fmt(c.l2)} ${U.len}, R ${fmt(c.re ?? 0)} ${U.len}, ${c.z ?? '—'} fl`);
+  if (m || op) lines.push([m && `Material: ${m.name} (ISO ${m.iso})`, op && `Operation: ${op.name}`].filter(Boolean).join(' · '));
   lines.push(`D ${fmt(c.d)} ${U.len} · z ${c.z ?? '—'}${c.ae ? ` · ae ${fmt(c.ae)} ${U.len}` : ''}${c.ap ? ` · ap ${fmt(c.ap)} ${U.len}` : ''}${c.maxRpm ? ` · max ${fmt(c.maxRpm, 0)} RPM` : ''}`);
   lines.push(`Spindle ${fmt(r.n, 0)} RPM${r.limited ? ` (limited; asked ${fmt(r.nRequested, 0)})` : ''} · cutting speed ${fmt(r.vc, u === 'mm' ? 1 : 0)} ${U.vc}`);
   lines.push(`Feed ${fmt(r.vf, u === 'mm' ? 0 : 2)} ${U.vf} · chip load ${fmt(r.fz, u === 'mm' ? 4 : 5)} ${U.fz}${r.mrr != null ? ` · MRR ${fmt(r.mrr, 2)} ${U.mrr}` : ''}`);
@@ -416,7 +582,8 @@ async function renderCatalogs() {
       <tr><th>Total loaded</th><td><b>${DATA.products.length.toLocaleString()}</b> catalog rows (each coating or shank version is its own part number)</td></tr>
     </tbody></table>
     <p><b>Not loaded:</b> ${cov.notLoaded.map(esc).join('; ')}.</p>
-    <p class="muted" style="font-size:.85rem">Read on ${esc(C.extracted)} from M.A. Ford Product Catalog Vol. 105. Every row's printed decimal size was checked against the diameter coded in its own part number. Check the catalog before ordering.</p>
+    <p class="muted" style="font-size:.85rem">Read on ${esc(C.extracted)} from M.A. Ford Product Catalog Vol. 105. Every row's printed decimal size was checked against the diameter coded in its own part number${WEB ? `, and against the size in M.A. Ford's website description (checked ${esc(WEB.checked)}; ${Object.keys(WEB.tools).length.toLocaleString()} tools listed there)` : ''}. Check the catalog before ordering.</p>
+    ${WEB ? '<p class="muted small">Product photos, drawings and material/application icons are shown directly from maford.com and remain M.A. Ford\'s. They need internet the first time; after that the app keeps them for offline use.</p>' : ''}
   </div>
   <div class="card"><h2>Available offline</h2><div id="offline">Checking…</div></div>
   <div class="card"><h2>Catalog PDFs</h2>
@@ -460,6 +627,8 @@ async function boot() {
   try {
     const get = n => fetch(`data/${n}.json`).then(r => { if (!r.ok) throw new Error(`${n}: ${r.status}`); return r.json(); });
     const [products, series, catalogs] = await Promise.all([get('products'), get('series'), get('catalogs')]);
+    WEB = await get('web').catch(() => null); // optional: official images and website listings
+    if (WEB) for (const [id, w] of Object.entries(WEB.series || {})) if (series[id]) series[id].webIso = [...new Set((w.materials || []).map(m => m.iso).filter(Boolean))];
     DATA = { products, series, catalogs };
     BY_ID = new Map(products.map(p => [p.id, p]));
     SERIES_IDS = Object.keys(series).sort((a, b) => series[a].doc.localeCompare(series[b].doc) || a.localeCompare(b, 'en', { numeric: true }));

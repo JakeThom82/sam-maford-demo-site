@@ -135,3 +135,59 @@ dialog::backdrop { background: #0008; }
 .saved-item { display: flex; gap: .6rem; align-items: flex-start; }
 .list-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---- Calculator home (modelled on the flow of M.A. Ford's calculator app) ---- */
+:root { --good: #3fb54a; --bad: #d9302c; --block: #cfd5db; --shank: #b9c0c7; --flute: #f2c230; --rb-h: 64px; }
+@media (prefers-color-scheme: dark) { :root { --block: #3a4652; --shank: #6d7882; --flute: #d6aa22; } }
+.small { font-size: .82rem; }
+button.card { display: block; width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+button.tool-card { display: grid; grid-template-columns: 92px 1fr; gap: 4px 12px; align-items: center; }
+.tool-pic { width: 92px; height: 46px; display: flex; align-items: center; justify-content: center; background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); }
+.tool-pic img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.tool-pic.small { width: 72px; height: 36px; flex: none; }
+.pic-off { font-size: .72rem; color: var(--muted); text-align: center; padding: 4px; }
+.tool-head b { display: block; } .tool-head small { color: var(--muted); }
+.stats4 { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px; border-top: 1px solid var(--line); padding-top: 8px; text-align: center; }
+.stats4 span { display: block; font-size: .72rem; color: var(--muted); } .stats4 b { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+button.mat-row { display: flex; align-items: center; gap: 12px; }
+.mat-row small { display: block; color: var(--muted); }
+.iso { width: 34px; height: 34px; flex: none; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: 800; color: #10181f; }
+.ops { margin: 0 0 12px; }
+.linkish { font: inherit; font-size: .75rem; background: none; border: 0; color: var(--accent); cursor: pointer; padding: 0 0 0 .3rem; text-decoration: underline; }
+.xd { font-size: .75rem; color: var(--muted); margin-left: .25rem; } .xd.bad { color: var(--bad); font-weight: 700; }
+.engage { margin: 6px 0 0; } .engage svg { width: 100%; max-width: 420px; height: auto; display: block; margin: 0 auto; }
+.engage figcaption { font-size: .82rem; text-align: center; }
+.guide { list-style: none; padding: 0; margin: 0; }
+.guide-item { display: flex; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid var(--line); color: inherit; text-decoration: none; }
+.resultbar { position: sticky; bottom: calc(var(--tabs-h) + var(--safe-b) + 6px); z-index: 5; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: var(--top); color: var(--top-ink); border-radius: 14px; padding: 8px 10px; margin: 12px 0 0; box-shadow: 0 6px 18px #0004; }
+.resultbar span { display: block; font-size: .7rem; opacity: .75; } .resultbar b { font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+.resultbar .rb-note { grid-column: 1 / -1; font-size: .75rem; opacity: .8; }
+@media (min-width: 1100px) { .resultbar { bottom: 12px; } }
+
+/* bottom sheet */
+dialog.sheet { margin: auto auto 0; width: 100%; max-width: 560px; max-height: 88vh; border-radius: 18px 18px 0 0; padding: 0 0 env(safe-area-inset-bottom, 0); overflow: auto; }
+@media (min-width: 760px) { dialog.sheet { margin: auto; border-radius: 18px; } }
+.sheet-head { position: sticky; top: 0; display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--top); color: var(--top-ink); }
+.sheet-head h2 { margin: 0; font-size: 1rem; }
+.sheet-body { padding: 14px 16px 20px; }
+.sheet-tool .drawing { width: 100%; background: #fff; border-radius: 8px; }
+.stepper { margin: 10px 0; } .stepper .row { flex-wrap: nowrap; } .stepper input { text-align: center; font-weight: 700; }
+.stepper .btn { width: 48px; flex: none; font-size: 1.3rem; padding: 0; }
+.mat-list { list-style: none; padding: 0; margin: 0 0 10px; display: grid; gap: 6px; }
+.mat-list button { width: 100%; display: flex; gap: 10px; align-items: center; text-align: left; font: inherit; color: #10181f; background: color-mix(in srgb, var(--iso) 75%, white); border: 2px solid transparent; border-radius: 10px; padding: 8px 10px; cursor: pointer; }
+.mat-list button[aria-pressed="true"] { border-color: var(--text); }
+.mat-list .iso { background: #ffffffb0; width: 30px; height: 30px; } .mat-list small { display: block; opacity: .8; }
+.preset-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.preset-grid button { font: inherit; font-size: .78rem; background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.preset-grid svg { width: 56px; height: 56px; }
+
+/* images from maford.com */
+.result.has-pic { display: flex; gap: 10px; align-items: center; }
+.result .thumb { width: 72px; height: 36px; object-fit: contain; background: #fff; border-radius: 6px; flex: none; }
+.result .rbody { flex: 1; min-width: 0; display: block; }
+.gallery { display: grid; gap: 10px; } .gallery img { width: 100%; height: auto; background: #fff; border-radius: 10px; }
+.gallery .photo { max-height: 220px; object-fit: contain; }
+.mf-icons { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; } .mf-icons span { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; }
+.mf-icons img { width: 28px; height: 28px; }
+.mf-apps { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 84px)); gap: 8px; margin: 6px 0 10px; }
+.mf-apps figure { margin: 0; } .mf-apps img { width: 100%; border-radius: 8px; background: #fff; } .mf-apps figcaption { font-size: .78rem; text-align: center; }
