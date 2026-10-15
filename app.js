@@ -6,6 +6,7 @@ import * as setups from './lib/setups.js';
 import { MATERIALS, OPERATIONS, ENGAGEMENT_PRESETS, ISO_COLORS, ISO_NAMES, materialById } from './lib/materials.js';
 import { guide } from './lib/guide.js';
 import { published } from './lib/published.js';
+import { isoScene, isoScale, toolpathOptions } from './lib/iso.js';
 
 const view = document.getElementById('view');
 const $ = (sel, el = document) => el.querySelector(sel);
@@ -314,6 +315,7 @@ function loadTool(p, units = calc.units) {
 const UNITS = { in: { len: 'in', vc: 'SFM', fz: 'in/tooth', vf: 'IPM', mrr: 'in³/min' }, mm: { len: 'mm', vc: 'm/min', fz: 'mm/tooth', vf: 'mm/min', mrr: 'cm³/min' } };
 
 // The tool the calculator works with: a catalog tool, or the user's own numbers (l2 = flute length).
+const pubKey = (tool, mat) => tool && mat ? `${tool.series}|${mat.id}|${tool.dc}` : null;
 function currentTool() {
   const p = calc.toolId ? BY_ID.get(calc.toolId) : null;
   const u = calc.units, f = u === 'mm' ? MM_PER_IN : 1;
@@ -332,6 +334,11 @@ function renderCalc(params) {
   }
   const u = calc.units, U = UNITS[u];
   const T = currentTool(), tool = T.catalog;
+  if (calc.pubFrom && calc.pubFrom !== pubKey(tool, materialById(calc.material))) {
+    // Speeds and feeds published for another series or material must not carry over.
+    calc.vc = calc.fz = undefined; calc.pubFrom = null; calc.path = null; saveCalc();
+    setTimeout(() => toast('Speed and feed cleared: they were M.A. Ford values for the previous tool or material'), 50);
+  }
   const s = tool ? DATA.series[tool.series] : null;
   const mat = materialById(calc.material);
   const op = OPERATIONS.find(o => o.id === calc.op);
@@ -345,6 +352,7 @@ function renderCalc(params) {
   const matches = calc.d > 0 ? guide({ iso: mat?.iso, op: op?.web, dc: u === 'mm' ? calc.d / MM_PER_IN : calc.d }, DATA.products, DATA.series, WEB) : [];
   const cutPages = (s?.cuttingData || []).map(c => c.page);
   const dcIn = u === 'mm' ? calc.d / MM_PER_IN : calc.d;
+  const pubAll = tool && mat ? published({ series: tool.series, dc: tool.dc, apmx: tool.apmx, iso: mat.iso, materialId: mat.id }, SF) : tool ? published({ series: tool.series, dc: tool.dc, apmx: tool.apmx }, SF) : null;
   const pub = tool ? published({ series: tool.series, dc: tool.dc, apmx: tool.apmx, iso: mat?.iso, materialId: mat?.id, op: calc.op }, SF) : null;
   const sfPdf = tool && webSeries(tool.series)?.speedFeedPdf;
 
@@ -363,7 +371,7 @@ function renderCalc(params) {
 
   <div class="ops chips" role="group" aria-label="Operation">${OPERATIONS.map(o => `<button type="button" class="chip" data-op="${o.id}" aria-pressed="${calc.op === o.id}">${esc(o.name)}</button>`).join('')}</div>
 
-  <div class="card cut-card"><h2>Drag the cutter <small class="muted">· see the cut</small></h2>${engageHtml()}</div>
+  <div class="card cut-card"><h2>Toolpath <small class="muted">· drag the cutter for depth</small></h2>${engageHtml(pubAll, mat, tool)}</div>
 
   <div class="card">
     <div class="row" style="justify-content:space-between;margin-bottom:6px"><h2 style="margin:0">Speed &amp; feed</h2>
@@ -376,7 +384,7 @@ function renderCalc(params) {
       <div class="field"><label for="c-ae">ae (${U.len}) <span id="xd-ae">${xD(calc.ae, calc.d)}</span></label>${input('ae', 'radial width')}</div>
       <div class="field"><label for="c-ap">ap (${U.len}) <span id="xd-ap">${xD(calc.ap, T.apmx)}</span></label>${input('ap', 'axial depth')}</div>
     </div>
-    <div class="list-actions"><button type="button" class="btn small" id="c-presets">Engagement presets</button><button type="button" class="btn small" id="c-example">Fill example values</button><button type="button" class="btn small" id="c-reset">Clear</button></div>
+    <div class="list-actions"><button type="button" class="btn small" id="c-example">Fill example values</button><button type="button" class="btn small" id="c-reset">Clear</button></div>
     ${publishedCard(pub, tool, mat, sfPdf)}
     ${tool && cutPages.length && !pub?.rows?.length ? `<p class="muted small">M.A. Ford publishes starting speeds and feeds for Series ${esc(tool.series)} on catalog pages ${cutPages.join(', ')}${mat ? ` (look for ${esc(mat.name.toLowerCase())})` : ''}. ${catalogLink(tool.doc, s.cuttingData[0].pdfPage, 'Open page ' + cutPages[0])}</p>` : ''}
     <p class="muted small">${pub?.rows?.length ? 'Vc and fz are yours to set: use M.A. Ford\'s published values above, or your own.' : 'Vc and fz are yours to enter. M.A. Ford\'s published values appear here when their data sheet for this series has been read.'} Example values only show the maths.</p>
@@ -406,14 +414,13 @@ function renderCalc(params) {
   <p class="muted small">Standard formulas on the values entered. A result does not mean the setup suits the tool, material, holder or machine.</p>
 
   <div class="resultbar" id="resultbar" aria-live="polite">${resultbarInner(r)}</div>`;
-  bindEngage(T, pub);
+  bindEngage(T, mat ? pubAll : null);
   bindPublished(pub, T);
 
   // Tool sheet / material sheet / presets
   $('#c-tool').addEventListener('click', openToolSheet);
   $('#c-tool2')?.addEventListener('click', openToolSheet);
   $('#c-mat').addEventListener('click', openMaterialSheet);
-  $('#c-presets').addEventListener('click', openPresetSheet);
   $('#c-more')?.addEventListener('click', () => { guideLimit = 999; renderCalc(); });
   view.querySelectorAll('[data-op]').forEach(b => b.addEventListener('click', () => { calc.op = calc.op === b.dataset.op ? null : b.dataset.op; saveCalc(); renderCalc(); }));
   view.querySelectorAll('[data-units]').forEach(b => b.addEventListener('click', () => switchUnits(b.dataset.units)));
@@ -466,6 +473,7 @@ function bindNumberInputs(root, rerender) {
     else if (['d', 'ae', 'ap', 'l2', 're'].includes(k)) { const P = parseLength(raw, u); v = P ? +(u === 'mm' ? P.in * MM_PER_IN : P.in).toFixed(6) : (k === 're' && /^0*\.?0*$/.test(raw) ? 0 : NaN); }
     else v = /^[-+]?(\d+\.?\d*|\.\d+)$/.test(raw) ? parseFloat(raw) : NaN;
     calc[k] = v; if (calc.examples) delete calc.examples[k];
+    if (['vc', 'n', 'fz', 'vf'].includes(k)) calc.pubFrom = null; // typed by the user: theirs to keep
     i.setAttribute('aria-invalid', Number.isNaN(v) ? 'true' : 'false');
     saveCalc();
     clearTimeout(bindNumberInputs.t);
@@ -473,12 +481,12 @@ function bindNumberInputs(root, rerender) {
   }));
 }
 
-// ---------- interactive cut (drag the cutter, like M.A. Ford's app) ----------
-// Front view of the cut: the workpiece block and the cutter at its right-hand wall. Dragging the
-// cutter sideways sets the radial width ae, up and down sets the axial depth ap. The engaged area is
-// green while ap is within the flute length and ae within the diameter (and within M.A. Ford's
-// published limits for the chosen operation, when there are any); red when the cutter is pushed past.
-let ENG = null; // geometry and limits for the current render
+// ---------- toolpath and cut (isometric; pick a suggested toolpath, drag the cutter for depth) ----------
+// Only suggested toolpaths can be picked: the ones M.A. Ford publishes for this tool and material
+// (full slot; side passes up to their radial limit), or, without published data, the usual full slot
+// and side passes. Picking one fixes the radial width ae; dragging the cutter up and down sets the
+// depth ap. The cutter turns red past the flute length or past M.A. Ford's published depth.
+let ENG = null;
 
 function resultbarInner(r) {
   const u = calc.units, U = UNITS[u];
@@ -488,106 +496,109 @@ function resultbarInner(r) {
     ${r.limited ? `<div class="rb-note">${fmt(r.vc, u === 'mm' ? 1 : 0)} ${U.vc} at max RPM</div>` : calc.speedFrom === 'n' && r.vc != null ? `<div class="rb-note">${fmt(r.vc, u === 'mm' ? 1 : 0)} ${U.vc}</div>` : calc.feedFrom === 'vf' && r.fz != null ? `<div class="rb-note">fz ${fmt(r.fz, 5)}</div>` : ''}`;
 }
 
-function engageHtml() {
-  if (!(calc.d > 0)) return '<p class="engage-empty">Pick a tool (or enter a diameter) and the cutter appears here: drag it sideways for ae and up or down for ap. It turns red when it goes too far into the part.</p><div class="list-actions"><a class="btn primary small" href="#/find">Pick a tool</a><button type="button" class="btn small" id="c-tool2">Enter my own sizes</button></div>';
-  return `<figure class="engage" id="engage">
-    <svg id="eng-svg" viewBox="0 0 340 236" role="slider" tabindex="0" aria-label="Cutter position: drag sideways for ae, up and down for ap. Arrow keys also move it."></svg>
-    <figcaption id="eng-cap"></figcaption>
-    <p class="muted small eng-hint">Drag the cutter: sideways for radial width ae, up and down for depth ap.</p>
-  </figure>`;
+// The toolpath currently set: the chosen option, or one inferred from typed ae/ap.
+function currentPath(options) {
+  const D = calc.d;
+  if (calc.path) {
+    const o = options.opts.find(o => o.type === calc.path.type && Math.abs(o.aeX - calc.path.aeX) < 1e-9);
+    if (o && calc.ae > 0 && Math.abs(calc.ae - o.aeX * D) < 1e-6 * Math.max(1, D)) return o;
+  }
+  return null;
 }
 
-function engageLimits(T, pub) {
-  const D = calc.d, loc = T.apmx > 0 ? T.apmx : null;
-  const row = pub?.opMatched && pub.rows.length === 1 ? pub.rows[0] : null; // a single published row for this job
-  return {
-    D, loc,
-    aeHard: D, apHard: loc,
-    aePub: row?.aeLim ? row.aeLim.max * D : null, apPub: row?.apLim ? row.apLim.max * D : null,
-    pubLabel: row ? `${row.application} (M.A. Ford: ae ${row.ae}, ap ${row.ap})` : null,
-  };
+function engageHtml(pubAll, mat, tool) {
+  if (!(calc.d > 0)) return '<p class="engage-empty">Pick a tool (or enter a diameter), then choose a toolpath and drag the cutter up or down for depth. It turns red when it goes too far into the part.</p><div class="list-actions"><a class="btn primary small" href="#/find">Pick a tool</a><button type="button" class="btn small" id="c-tool2">Enter my own sizes</button></div>';
+  const options = toolpathOptions(mat && pubAll?.rows?.length ? pubAll.rows : null);
+  const cur = currentPath(options);
+  const intro = options.published
+    ? `Toolpaths M.A. Ford publishes for this tool in ${esc(mat.name.toLowerCase())} (Speed and Feed Data, page ${esc(pubAll.page)}):`
+    : tool && pubAll?.rows && mat ? `M.A. Ford's data sheet has no row for ${esc(mat.name.toLowerCase())}; standard toolpaths, limited only by the flute length:`
+    : `Standard toolpaths${tool ? '' : ' for your tool'}, limited only by the flute length${tool && !mat && pubAll ? ' (choose the material to see M.A. Ford\'s toolpaths for this tool)' : ''}:`;
+  return `<p class="small">${intro}</p>
+    <div class="paths" role="radiogroup" aria-label="Toolpath">${options.opts.map((o, i) => `<button type="button" class="path${o.type === 'slot' ? ' slot' : ''}" role="radio" aria-checked="${cur === o}" data-path="${i}">
+      <svg viewBox="0 0 40 28" aria-hidden="true">${o.type === 'slot'
+        ? '<path d="M2 10h14v12h8V10h14v16H2z" class="pi-block"/><rect x="16" y="2" width="8" height="20" class="pi-tool"/>'
+        : `<path d="M2 6h${36 - o.aeX * 16}v8h${o.aeX * 16}v12H2z" class="pi-block"/><rect x="${38 - o.aeX * 16}" y="0" width="16" height="14" class="pi-tool"/>`}</svg>
+      <span><b>${esc(o.label)}</b><small>${esc(o.sub)}</small></span></button>`).join('')}</div>
+    ${cur || calc.ae > 0 ? `<figure class="engage" id="engage"><div id="eng-svg" role="slider" tabindex="0" aria-label="Cutter depth: drag up or down, or use the arrow keys"></div><figcaption id="eng-cap"></figcaption></figure>` : '<p class="muted small">Choose a toolpath to place the cutter in the part.</p>'}`;
 }
 
 function drawEngage() {
-  const svg = document.getElementById('eng-svg'); if (!svg || !ENG) return;
-  const { D, loc, s, top, xr, H } = ENG;
+  const box = document.getElementById('eng-svg'); if (!box || !ENG) return;
+  const { D, loc, opt } = ENG;
   const ae = Math.max(0, calc.ae || 0), ap = Math.max(0, calc.ap || 0);
-  const tw = D * s, toolL = xr - ae * s, bottom = top + ap * s, fluteTop = bottom - (loc || D * 2) * s;
-  const L = ENG.lim;
-  const overHard = (L.apHard && ap > L.apHard + 1e-9) || ae > L.aeHard + 1e-9;
-  const overPub = (L.aePub && ae > L.aePub + 1e-9) || (L.apPub && ap > L.apPub + 1e-9);
-  const bad = overHard || overPub;
-  const engW = Math.min(ae, D) * s;
-  const blockBottom = top + H * s;
-  svg.innerHTML = `
-    <defs><linearGradient id="flg" x1="0" x2="1"><stop offset="0" stop-color="var(--flute)"/><stop offset=".55" stop-color="#fff3b0"/><stop offset="1" stop-color="var(--flute)"/></linearGradient>
-      <linearGradient id="shg" x1="0" x2="1"><stop offset="0" stop-color="var(--shank)"/><stop offset=".5" stop-color="#eef1f4"/><stop offset="1" stop-color="var(--shank)"/></linearGradient></defs>
-    <rect x="20" y="${top}" width="${xr - 20}" height="${blockBottom - top}" fill="var(--block)" stroke="var(--line)"/>
-    ${L.apPub ? `<line x1="20" x2="${xr + tw + 20}" y1="${top + L.apPub * s}" y2="${top + L.apPub * s}" class="eng-lim"/><text x="24" y="${top + L.apPub * s - 4}" class="eng-lt">published ap limit</text>` : ''}
-    ${L.aePub ? `<line x1="${xr - L.aePub * s}" x2="${xr - L.aePub * s}" y1="${top - 22}" y2="${blockBottom}" class="eng-lim"/>` : ''}
-    <rect x="${toolL}" y="0" width="${tw}" height="${Math.max(0, fluteTop)}" fill="url(#shg)" class="eng-tool"/>
-    <rect x="${toolL}" y="${fluteTop}" width="${tw}" height="${bottom - fluteTop}" fill="url(#flg)" class="eng-tool"/>
-    ${ae > 0 && ap > 0 ? `<rect x="${toolL}" y="${top}" width="${engW}" height="${Math.min(ap, H) * s}" fill="${bad ? 'var(--bad)' : 'var(--good)'}" opacity=".85" class="eng-tool"/>` : ''}
-    ${loc ? `<line x1="${toolL + tw + 6}" y1="${fluteTop}" x2="${toolL + tw + 6}" y2="${bottom}" stroke="var(--muted)"/><text x="${Math.min(toolL + tw + 9, 300)}" y="${(fluteTop + bottom) / 2 + 4}" class="eng-lt">flutes</text>` : ''}
-    <text x="${xr - 4}" y="${blockBottom + 16}" text-anchor="end" class="eng-lt">workpiece</text>
-    <g class="eng-handle" transform="translate(${toolL + tw / 2} ${Math.max(16, fluteTop - 14)})"><circle r="13"/><path d="M-7 0H7M0-7V7M-7 0l3-3M-7 0l3 3M7 0l-3-3M7 0l-3 3M0-7l-3 3M0-7l3 3M0 7l-3-3M0 7l3-3"/></g>`;
-  const cap = document.getElementById('eng-cap');
-  const xd = (v, lim) => `<b class="${lim != null && v > lim + 1e-9 ? 'bad' : ''}">${fmt(v / D, 2)} × D</b>`;
+  const apMax = opt?.apMaxX ? opt.apMaxX * D : null;
+  const overLoc = loc && ap > loc + 1e-9, overPub = apMax && ap > apMax + 1e-9, overD = ae > D + 1e-9;
+  const bad = overLoc || overPub || overD;
+  const type = opt ? opt.type : ae >= D - 1e-9 ? 'slot' : 'side';
+  box.innerHTML = isoScene({ D, ae: Math.min(ae, D), ap, loc, type, bad });
   const unit = calc.units === 'mm' ? 'mm' : 'in';
-  cap.innerHTML = `ae ${fmt(ae, 3)} ${unit} ${xd(ae, Math.min(L.aeHard, L.aePub ?? Infinity))} · ap ${fmt(ap, 3)} ${unit} ${xd(ap, Math.min(L.apHard ?? Infinity, L.apPub ?? Infinity))}<br>
-    <span class="${bad ? 'bad' : 'good'}">${overHard ? (ap > (L.apHard ?? Infinity) ? 'Deeper than the flute length' : 'Wider than the cutter') : overPub ? `Past M.A. Ford's published limit for ${esc(L.pubLabel)}` : ae > 0 && ap > 0 ? (L.pubLabel ? `Within M.A. Ford's published limit for ${esc(L.pubLabel)}` : 'Within the tool\'s flute length and diameter') : '<span class="muted">Grab the cutter and drag it into the part</span>'}</span>`;
+  const xd = (v, lim) => `<b class="${lim != null && v > lim + 1e-9 ? 'bad' : ''}">${fmt(v / D, 2)} × D</b>`;
+  const lim = Math.min(loc ?? Infinity, apMax ?? Infinity);
+  document.getElementById('eng-cap').innerHTML = `${opt ? esc(opt.label) : type === 'slot' ? 'Slot' : 'Side pass'} · ae ${fmt(ae, 3)} ${unit} ${xd(ae, D)} · ap ${fmt(ap, 3)} ${unit} ${xd(ap, lim === Infinity ? null : lim)}<br>
+    <span class="${bad ? 'bad' : ap > 0 ? 'good' : 'muted'}">${overD ? 'Wider than the cutter' : overLoc ? 'Deeper than the flute length' : overPub ? `Deeper than M.A. Ford's published ${esc(opt.row.application.toLowerCase())} depth (${esc(opt.row.ap)})` : ap > 0 ? (apMax ? `Within M.A. Ford's published depth (${esc(opt.row.ap)})` : 'Within the flute length') : 'Drag the cutter down into the part'}</span>
+    <br><span class="muted small">Drag the cutter up or down to change the depth.</span>`;
 }
 
-function bindEngage(T, pub) {
-  const svg = document.getElementById('eng-svg'); if (!svg) return;
+function bindEngage(T, pubAll) {
+  document.querySelectorAll('[data-path]').forEach(b => b.addEventListener('click', () => selectPath(+b.dataset.path, T, pubAll)));
+  const box = document.getElementById('eng-svg'); if (!box) return;
   const D = calc.d, loc = T.apmx > 0 ? T.apmx : null;
-  const lim = engageLimits(T, pub);
-  // Scale: the block is a little deeper than the flutes (or the published ap limit); the cutter keeps a readable width.
-  const H = Math.max((loc || 2 * D) * 1.25, 2.2 * D, (lim.apPub || 0) * 1.1, (calc.ap || 0) * 1.05);
-  const s = Math.min(150 / H, 90 / D);
-  const top = Math.round((loc || 2 * D) * s + 34);          // room above the part for the cutter
-  const VH = Math.round(top + H * s + 26);
-  svg.setAttribute('viewBox', `0 0 340 ${VH}`);
-  ENG = { D, loc, s, top, xr: 200, H, lim, VH };
+  const options = toolpathOptions(pubAll?.rows?.length ? pubAll.rows : null);
+  ENG = { D, loc, opt: currentPath(options) };
   drawEngage();
   const step = calc.units === 'mm' ? 0.01 : 0.001;
   const snap = v => Math.round(v / step) * step;
   const live = () => {
     drawEngage();
-    for (const k of ['ae', 'ap']) {
-      const el = document.getElementById('c-' + k); if (el) el.value = calc[k] ? String(+calc[k].toFixed(4)) : '';
-      const lim = k === 'ae' ? D : loc, x = document.getElementById('xd-' + k);
-      if (x && calc[k] > 0) x.innerHTML = `<span class="xd${lim != null && calc[k] > lim + 1e-9 ? ' bad' : ''}">${fmt(calc[k] / D, 2)} × D</span>`;
-    }
+    const el = document.getElementById('c-ap'); if (el) el.value = calc.ap ? String(+calc.ap.toFixed(4)) : '';
+    const x = document.getElementById('xd-ap'); if (x && calc.ap > 0) x.innerHTML = `<span class="xd${loc != null && calc.ap > loc + 1e-9 ? ' bad' : ''}">${fmt(calc.ap / D, 2)} × D</span>`;
     const r = compute({ ...calc, tool: { id: T.catalog ? T.catalog.tool : 'your tool', d: T.catalog ? T.d : undefined, nof: T.catalog ? T.nof : undefined, apmx: T.apmx } });
     const bar = document.getElementById('resultbar'); if (bar) bar.innerHTML = resultbarInner(r);
   };
   let drag = null;
-  svg.addEventListener('pointerdown', e => {
-    const pt = svgPoint(svg, e);
-    drag = { x: pt.x, y: pt.y, ae: calc.ae || 0, ap: calc.ap || 0 };
-    svg.setPointerCapture(e.pointerId); svg.classList.add('dragging'); e.preventDefault();
+  box.addEventListener('pointerdown', e => {
+    const { k } = isoScale({ D, ap: calc.ap || 0, loc });
+    const rect = box.getBoundingClientRect();
+    drag = { y: e.clientY, ap: calc.ap || 0, perPx: 300 / rect.height / k, maxAp: isoScale({ D, ap: 0, loc }).Hz };
+    box.setPointerCapture(e.pointerId); box.classList.add('dragging'); e.preventDefault();
   });
-  svg.addEventListener('pointermove', e => {
+  box.addEventListener('pointermove', e => {
     if (!drag) return;
-    const pt = svgPoint(svg, e);
-    calc.ae = snap(Math.min(D * 1.25, Math.max(0, drag.ae + (drag.x - pt.x) / s)));
-    calc.ap = snap(Math.min(H, Math.max(0, drag.ap + (pt.y - drag.y) / s)));
-    delete calc.examples?.ae; delete calc.examples?.ap;
+    calc.ap = snap(Math.min(drag.maxAp * 1.1, Math.max(0, drag.ap + (e.clientY - drag.y) * drag.perPx)));
+    delete calc.examples?.ap;
     if (!live.raf) live.raf = requestAnimationFrame(() => { live.raf = 0; live(); });
   });
-  const end = () => { if (!drag) return; drag = null; svg.classList.remove('dragging'); saveCalc(); renderCalc(); };
-  svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', end);
-  svg.addEventListener('keydown', e => {
-    const k = { ArrowLeft: ['ae', 1], ArrowRight: ['ae', -1], ArrowDown: ['ap', 1], ArrowUp: ['ap', -1] }[e.key];
-    if (!k) return; e.preventDefault();
-    const inc = (e.shiftKey ? 0.1 : 0.02) * D;
-    calc[k[0]] = snap(Math.max(0, (calc[k[0]] || 0) + k[1] * inc)); saveCalc(); live();
+  const end = () => { if (!drag) return; drag = null; box.classList.remove('dragging'); saveCalc(); renderCalc(); };
+  box.addEventListener('pointerup', end); box.addEventListener('pointercancel', end);
+  box.addEventListener('keydown', e => {
+    const d = { ArrowDown: 1, ArrowUp: -1 }[e.key]; if (!d) return; e.preventDefault();
+    calc.ap = snap(Math.max(0, (calc.ap || 0) + d * (e.shiftKey ? 0.25 : 0.05) * D)); saveCalc(); live();
   });
 }
-function svgPoint(svg, e) {
-  const r = svg.getBoundingClientRect();
-  return { x: (e.clientX - r.left) * 340 / r.width, y: (e.clientY - r.top) * (ENG?.VH || 236) / r.height };
+
+// Picking a toolpath: ae from the option; ap at M.A. Ford's published depth (never past the
+// flutes) or, without published data, a starting depth to drag from; M.A. Ford's fz and the low end
+// of their Vc range when they publish them.
+function selectPath(i, T, pubAll) {
+  const options = toolpathOptions(pubAll?.rows?.length ? pubAll.rows : null);
+  const o = options.opts[i]; if (!o) return;
+  const D = calc.d, loc = T.apmx > 0 ? T.apmx : Infinity;
+  calc.path = { type: o.type, aeX: o.aeX };
+  calc.ae = +(o.aeX * D).toFixed(6);
+  calc.ap = +Math.min(o.apMaxX ? o.apMaxX * D : (o.type === 'slot' ? 0.5 : 1) * D, loc).toFixed(6);
+  calc.op = o.type === 'slot' ? 'slot' : calc.op === 'slot' ? null : calc.op;
+  delete calc.examples?.ae; delete calc.examples?.ap;
+  let msg = `${o.label}: drag the cutter for depth`;
+  if (o.row && pubAll) {
+    const toMetric = calc.units === 'mm' && pubAll.unit === 'in';
+    calc.speedFrom = 'vc'; calc.feedFrom = 'fz'; calc.examples = {};
+    calc.vc = toMetric ? +(o.row.vcRange.lo * 0.3048).toFixed(1) : o.row.vcRange.lo;
+    calc.fz = toMetric ? +(o.row.fzAtD * 25.4).toFixed(4) : o.row.fzAtD;
+    calc.pubFrom = pubKey(T.catalog, materialById(calc.material));
+    msg = `${o.label}: M.A. Ford ${o.row.application.toLowerCase()} values (page ${pubAll.page})`;
+  }
+  saveCalc(); renderCalc(); toast(msg);
 }
 
 // ---------- M.A. Ford published speeds and feeds ----------
@@ -616,9 +627,11 @@ function bindPublished(pub, T) {
     calc.speedFrom = 'vc'; calc.feedFrom = 'fz'; calc.examples = {};
     calc.vc = toMetric ? +(r.vcRange.lo * 0.3048).toFixed(1) : r.vcRange.lo;
     calc.fz = toMetric ? +(r.fzAtD * 25.4).toFixed(4) : r.fzAtD;
+    calc.pubFrom = pubKey(T.catalog, materialById(calc.material));
     if (r.aeLim) calc.ae = +(r.aeLim.max * calc.d).toFixed(5);
     if (r.apLim) calc.ap = +(Math.min(r.apLim.max * calc.d, T.apmx || Infinity)).toFixed(5);
     calc.op = /slot/i.test(r.application) ? 'slot' : calc.op && calc.op !== 'slot' ? calc.op : 'hem';
+    calc.path = /slot/i.test(r.application) ? { type: 'slot', aeX: 1 } : r.aeLim ? { type: 'side', aeX: r.aeLim.max } : null;
     saveCalc(); renderCalc(); toast(`M.A. Ford ${r.application.toLowerCase()} values loaded (page ${pub.page})`);
   }));
 }

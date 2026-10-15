@@ -209,3 +209,19 @@ dialog.sheet { margin: auto auto 0; width: 100%; max-width: 560px; max-height: 8
 .pubt td { white-space: normal; } .pubt td:nth-child(2) { white-space: nowrap; }
 .cut-card h2 small { font-weight: 400; } .engage-empty { margin: .2rem 0 .4rem; }
 .eng-handle circle { fill: var(--accent); opacity: .9; } .eng-handle path { stroke: #fff; stroke-width: 1.6; fill: none; stroke-linecap: round; } .engage svg.dragging .eng-handle circle { opacity: .6; }
+
+/* toolpath chooser + isometric cut */
+.paths { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; margin: 4px 0 8px; }
+.path { display: flex; gap: 8px; align-items: center; text-align: left; font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px; cursor: pointer; min-height: 48px; }
+.path[aria-checked="true"] { border: 2px solid var(--accent); background: var(--accent-soft); }
+.path svg { width: 40px; height: 28px; flex: none; }
+.path b { display: block; font-size: .86rem; } .path small { display: block; font-size: .74rem; color: var(--muted); }
+.pi-block { fill: var(--block); stroke: var(--muted); stroke-width: .8; } .pi-tool { fill: var(--flute); stroke: #8a6a0a; stroke-width: .6; }
+#eng-svg { touch-action: none; cursor: grab; border-radius: 12px; background: var(--surface-2); max-width: 460px; margin: 0 auto; }
+#eng-svg.dragging { cursor: grabbing; }
+#eng-svg svg { width: 100%; height: auto; display: block; }
+.iso-top { fill: #e4e8ec; stroke: #6f7a85; stroke-width: .8; }
+.iso-front { fill: #a9b3bd; stroke: #6f7a85; stroke-width: .8; }
+.iso-side { fill: #c6cdd4; stroke: #6f7a85; stroke-width: .8; }
+.iso-ghost polygon { fill-opacity: .28; stroke-dasharray: 3 2; }
+@media (prefers-color-scheme: dark) { .iso-top { fill: #56636f; } .iso-front { fill: #3b4652; } .iso-side { fill: #47535f; } }
